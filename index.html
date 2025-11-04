@@ -1,0 +1,27 @@
+<html>
+    <body>
+        <input id="a" type="number" placeholder="Wpisz a">
+        <input id="b" type="number" placeholder="Wpisz b">
+        <button onclick="divide()">dziel</button>
+
+        <div id="result"></div>
+    </body>
+
+    <script>
+
+        function divide() {
+            var a = parseInt(document.querySelector("#a").value);
+            var b = parseInt(document.querySelector("#b").value); 
+           
+    
+            if (b==0)
+            {
+                document.querySelector("#result").textContent="Nie dziel przez zero"
+            }
+            else
+            {
+             document.querySelector("#result").textContent="wynik to: " + (a/b);
+            }
+        }
+    </script>
+</html>

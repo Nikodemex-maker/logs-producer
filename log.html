@@ -1,0 +1,93 @@
+<!--log.html-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CodeMaster Academy</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: silver;
+      text-align: center;
+    }
+
+    header {
+      background-color: white;
+      padding: 20px;
+    }
+
+    .logo {
+      width: 150px;
+      height: auto;
+    }
+    h1 {
+      color: black;
+      margin-top: 40px;
+      font-size:bold;
+    }
+
+    p {
+      color: black;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="Logo CodeMaster Academy" class="logo" id="logo">
+  </header>
+  <main>
+    <h1>Welcome on CodeMaster Academy!</h1>
+    <p>Start your experience with software right now!</p>
+  </main>
+
+  <input id="a" type="name" placeholder="Enter Name">
+        <input id="b" type="number" placeholder="Enter Age">
+        <button onclick="divide()">Save</button>
+        <div id="result"></div>
+
+    <button onclick="console.log('Button clicked! Open the console to see more.')">Show the console.</button>
+
+  <script>
+
+    //console.log('%cWelcome to the console! 👋', 'color: purple; font-size: 25px; font-weight: bold;');//
+    
+    src="script.js"
+
+    // Prosty log do konsoli
+    console.log('%cThe page has been loaded.', 'color: green; font-weight: bold; font-size: 20px;');
+
+
+    // Sprawdzenie, czy logo istnieje
+    const logo = document.getElementById("logo");
+    if (logo.complete && logo.naturalHeight !== 0) {
+      console.log('%cThe logo has been loaded successfully.', 'color:lightgreen; font-weight: bold; font-size:18px');
+    } else {
+      console.log('%cError: The logo failed to load.', 'color:red; font-weight: bold; font-size:25px');
+    }
+
+    //console.log(`%cName: Nikodem, Age: 16`, 'color: aquamarine; font-weight: bold; font-size: 16px;');//
+
+  function divide() {
+    var a = parseInt(document.querySelector("#a").value);
+    var b = parseInt(document.querySelector("#b").value);
+    document.querySelector("#result").textContent="I know you :)";
+  }
+  function divide() {
+    var a = parseInt(document.querySelector("#a").value);
+    var b = parseInt(document.querySelector("#b").value);
+
+    document.querySelector("#result").textContent ="I know you :)";
+
+    // Wyczyść pola po kliknięciu
+    document.querySelector("#a").value = "";
+    document.querySelector("#b").value = "";
+  }
+
+
+
+  </script>
+     
+
+</body>
+</html>

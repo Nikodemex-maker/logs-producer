@@ -1,0 +1,76 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: "Lexend", sans-serif;
+}
+body {
+    background-color: rgb(200, 200, 200);
+    background-image: url(src/wave.svg);
+    background-repeat: no-repeat;
+    background-position-y: bottom;
+}
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.logo {
+    width: 64px;
+    height: 64px;
+}
+.loginBar {
+    padding: 20px;
+    text-align: center;
+    background-color: white;
+    width: 30%;
+    height: 60%;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgb(50, 50, 50);
+}
+.loginBarTitle {
+    padding-top: 20px;
+}
+.loginBarTitle2 {
+    padding-bottom: 20px;
+}
+#inputArea {
+    padding-left: 20px;
+    width: 80%;
+    height: 30px;
+    margin: 5px;
+    outline: none;
+    border: none;
+    border-bottom: 2px solid lightgray;
+    /* border-radius: 20px; */
+}
+.btnSubmit {
+    color: white;
+    border-style: none;
+    background: -webkit-linear-gradient(top left, #0881F3 30%, #9E08F3 80%);
+    margin-top: 10%;
+    width: 60%;
+    height: 30px;
+    border-radius: 40px;
+}
+.btnSubmit:hover{
+    background: -webkit-linear-gradient(top left, #9E08F3 30%, #0881F3 80%);
+}
+.submitAction {
+    color: white;
+    text-decoration: none;
+}
+.signText {
+    padding-top: 20px;
+    font-size: x-small;
+}
+.signUp {
+    color: #0881F3;
+    text-decoration: none;
+}
+.logo.error {
+  background-color: red;
+  content: "Logo się nie załadowało!";
+}
+
+
