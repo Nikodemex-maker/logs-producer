@@ -40,13 +40,12 @@
     <h1>Welcome on CodeMaster Academy!</h1>
     <p>Start your experience with software right now!</p>
   </main>
-
-  <input id="a" type="name" placeholder="Enter Name">
-        <input id="b" type="number" placeholder="Enter Age">
-        <button onclick="divide()">Save</button>
-        <div id="result"></div>
-
     <button onclick="console.log('Button clicked! Open the console to see more.')">Show the console.</button>
+    <input id="a" type="text" placeholder="Enter Name">
+    <input id="b" type="number" placeholder="Enter Age">
+      <button onclick="divide()">Save</button>
+      <div id="result"></div>
+      <div id="json-output"></div>
 
   <script>
 
@@ -84,10 +83,46 @@
     document.querySelector("#b").value = "";
   }
 
-
-
   </script>
-     
+
+  <script>
+  fetch('/api/data')
+    .then(response => response.json())
+    .then(data => {
+      const output = `
+        <p><strong>Name:</strong> ${data.name}</p>
+        <p><strong>Age:</strong> ${data.age}</p>
+        <p><strong>Occupation:</strong> ${data.occupation}</p>
+      `;
+      document.getElementById('json-output').innerHTML = output;
+    })
+    .catch(error => {
+      console.error('Unable to load data:', error);
+    });
+</script>
+
+  <script>
+    function divide() {
+      const name = document.querySelector("#a").value;
+      const age = document.querySelector("#b").value;
+
+      if (name && age) {
+        const resultBox = document.querySelector("#result");
+        resultBox.innerHTML += ` 
+        <div style = "margin-bottom: 25px;">
+          <p><strong>Name:</strong>${name}</p>
+          <p><strong>Age:</strong>${age}</p>
+        </div>
+      `;}
+
+      else{
+        document.querySelector("#result").textContent = "Please enter both, name and age."
+      }
+        document.querySelector("#a").value = "";
+        document.querySelector("#b").value = "";
+    }
+  </script>
+   
 
 </body>
 </html>

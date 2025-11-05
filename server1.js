@@ -26,3 +26,13 @@
 
 // Serwowanie plików statycznych (np. logo.png)
     app.use(express.static(__dirname));
+
+app.get('/api/data', (req, res) => { 
+    const sampleData = { 
+        name: "Jan Kowalski", 
+        age: 30, 
+        occupation: "Software Developer" 
+    }; 
+    res.json(sampleData); 
+}); 
+app.use(express.json());
