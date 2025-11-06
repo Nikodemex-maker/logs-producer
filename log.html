@@ -1,4 +1,3 @@
-<!--log.html-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,14 +20,55 @@
       width: 150px;
       height: auto;
     }
+
     h1 {
       color: black;
       margin-top: 40px;
-      font-size:bold;
+      font-weight: bold;
+      font-size:32px;
+      text-shadow: 0 0 10px #00f, 0 0 20px rgb(214, 62, 214), 0 0 10px purple;
     }
 
     p {
       color: black;
+      text-shadow: 0 0 10px rgb(214, 62, 214), 0 0 20px #00f, 0 0 10px purple;    
+    }
+
+    #form-section {
+      margin-top: 30px;
+    }
+
+    input {
+      margin: 5px;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #333;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style-type: disc;
+      padding-left: 40px;
+      text-align: left;
+      max-width: 600px;
+      margin: 20px auto;
+    }
+
+    li {
+      margin-bottom: 15px;
+      background-color: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
   </style>
 </head>
@@ -36,26 +76,26 @@
   <header>
     <img src="logo.png" alt="Logo CodeMaster Academy" class="logo" id="logo">
   </header>
+
   <main>
-    <h1>Welcome on CodeMaster Academy!</h1>
+    <h1>Welcome to CodeMaster Academy!</h1>
     <p>Start your experience with software right now!</p>
-  </main>
-    <button onclick="console.log('Button clicked! Open the console to see more.')">Show the console.</button>
-    <input id="a" type="text" placeholder="Enter Name">
-    <input id="b" type="number" placeholder="Enter Age">
-      <button onclick="showMessage()">Save</button>
+
+    <div id="form-section">
+      <input id="task" type="text" placeholder="Enter Task">
+      <input id="status" type="text" placeholder="Enter Status">
+      <input id="deadline" type="text" placeholder="Enter Deadline">
+      <button onclick="saveTask()">Save Task</button>
+      <button onclick="location.reload()">Refresh</button>
       <div id="result"></div>
-      <div id="json-output"></div>
+    </div>
+
+    <div id="json-output"></div>
+  </main>
 
   <script>
+    console.log('%cThe page has been loaded.', 'color: green; font-weight: bold; font-size: 20px');
 
-    //console.log('%cWelcome to the console! 👋', 'color: purple; font-size: 25px; font-weight: bold;');//
-
-    // Prosty log do konsoli
-    console.log('%cThe page has been loaded.', 'color: green; font-weight: bold; font-size: 20px;');
-
-
-    // Sprawdzenie, czy logo istnieje
     const logo = document.getElementById("logo");
     if (logo.complete && logo.naturalHeight !== 0) {
       console.log('%cThe logo has been loaded successfully.', 'color:lightgreen; font-weight: bold; font-size:18px');
@@ -63,99 +103,70 @@
       console.log('%cError: The logo failed to load.', 'color:red; font-weight: bold; font-size:25px');
     }
 
-    //console.log(`%cName: Nikodem, Age: 16`, 'color: aquamarine; font-weight: bold; font-size: 16px;');//
+    function saveTask() {
+      const task = document.querySelector("#task").value;
+      const status = document.querySelector("#status").value;
+      const deadline = document.querySelector("#deadline").value;
 
-  function showMessage() {
-    var a = parseInt(document.querySelector("#a").value);
-    var b = parseInt(document.querySelector("#b").value);
-    document.querySelector("#result").textContent="I know you :)";
-  }
-  function showMessage() {
-    var a = parseInt(document.querySelector("#a").value);
-    var b = parseInt(document.querySelector("#b").value);
-
-    document.querySelector("#result").textContent ="I know you :)";
-
-    // Wyczyść pola po kliknięciu
-    document.querySelector("#a").value = "";
-    document.querySelector("#b").value = "";
-  }
-
-  </script>
-
-  <script>
-    function fetchData() {
-      fetch('/api/data')
-        .then(response => response.json())
+      if (task && status && deadline) {
+        const newTask = { task, status, deadline };
+  
+        fetch('http://localhost:3000/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newTask)
+        })
+        .then(res => {
+          if (!res.ok) {
+            console.log('Problem');
+            return;
+          }
+          return res.json();
+        })
         .then(data => {
-          document.getElementById('json-output').innerHTML = "";
-          data.forEach(data => {
-          const output = `
-           <div style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
-            <p><strong>Name:</strong> ${data.name}</p>
-            <p><strong>Age:</strong> ${data.age}</p>
-            <p><strong>Occupation:</strong> ${data.occupation}</p>
-            </div>
-          `;
-          document.getElementById('json-output').innerHTML += output;
-          });
+          console.log('Task saved');
+          document.querySelector("#result").textContent = "I saved it for you :)";
+          fetchTasks();
         })
         .catch(error => {
-          console.error('Unable to load data:', error);
+          console.log(error);
         });
+
+        document.querySelector("#task").value = "";
+        document.querySelector("#status").value = "";
+        document.querySelector("#deadline").value = "";
+      } else {
+        alert("Please fill in all fields.");
+      }
     }
-      
-    fetchData();
 
-    //Zapisuje dane wpisane w formulrzu i wyświetla je pod spodem //
-    function showMessage() {
-      const name = document.querySelector("#a").value;
-      const age = document.querySelector("#b").value;
+    function fetchTasks() {
+      fetch('/api/tasks')
+        .then(response => response.json())
+        .then(data => {
+          const output = document.getElementById('json-output');
+          output.innerHTML = '';
 
-      if (name && age) {
-      //   const resultBox = document.querySelector("#result");
-      //   resultBox.innerHTML += ` 
-      //   <div style = "margin-bottom: 25px;">
-      //     <p><strong>Name:</strong>${name}</p>
-      //     <p><strong>Age:</strong>${age}</p>
-      //   </div>
-      // `;
-      const newUser = {
-        name: name,
-        age: age
-      };
-      fetch('http://localhost:3000/api/data',{
-        method : 'POST', 
-        headers: {'Content-Type': 'application/json'},
-        body:JSON.stringify(newUser)
-      }).then(res => {
-        if (!res.ok){
-         console.log('Problem');
-        return;
-      }
-      
-        return res.json();
-      }).then(data => {
-        console.log('Success');
-        fetchData();
-      }) .catch(error=> {
-        console.log(error);
-      });
-      }else{
-        alert ("An error has occurred. Please try again later.");
-      }
-        document.querySelector("#a").value = "";
-        document.querySelector("#b").value = "";
-    }
-  </script>
+          const list = document.createElement('ul');
 
-  <script>
-    //Tylko liczby 0-9 żadnych liter czy znaków !!!
-    document.querySelector("#b").addEventListener("keypress", function (e){
-      if (!/[0-9]/.test(e.key)) {
-        e.preventDefault();
+          data.forEach(item => {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+              <strong>📝 Task:</strong> ${item.task}<br>
+              <strong>📌 Status:</strong> ${item.status}<br>
+              <strong>⏰ Deadline:</strong> ${item.deadline}
+            `;
+            list.appendChild(listItem); 
+          });
+            output.appendChild(list);         
+        });
       }
-    });
+      fetchTasks(); // ← żeby dane pojawiły się od razu po załadowaniu strony
+
   </script>
 </body>
 </html>
+
+
+
+

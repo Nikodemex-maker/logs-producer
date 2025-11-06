@@ -8,8 +8,7 @@
     const app = express();
 
 // Obsługuje żądanie GET na ścieżkę główną ('/')
-    app.use(express.static('public'));{
-    };
+    app.use(express.static('public'));
 
 // Ustawia port — domyślnie 3000
     const PORT = process.env.PORT || 3000;
@@ -28,28 +27,46 @@
     app.use(express.static(__dirname));
 
 //Obsługuje żądanie GET na ścieżkę /api/data i zwraca tablicę Users
-app.get('/api/data', (req, res) => { 
-    res.json(Users); 
+app.get('/api/tasks', (req, res) => { 
+    res.json(Tasks); 
 });
 
 //Middleware do parsowania JSON — musi być przed POST
  app.use(express.json());
 //Tworzy przykładową tablicę użytkowników
-    let Users = [
+    let Tasks = [
       {
-        name: "Jan Kowalski", 
-        age: 30, 
-        occupation: "Software Developer"  
+        task: "Finish homework", 
+        status: "In progress",
+        deadline: "Before evening"  
       }  
     ]
-//GET /api/data — zwraca dane użytkowników
-app.get('/api/data', (req, res) => {
-    res.json(Users);
+//GET /api/tasks — zwraca dane użytkowników
+app.get('/api/tasks', (req, res) => {
+    res.json(Tasks);
 });
-//POST /api/data — odbiera dane z formularza
-app.post('/api/data', (req, res) => {
-    Users.push(req.body);
-    console.log("Received data:", req.body);
-    res.json({message: "Data received"});
+//POST /api/tasks — odbiera dane z formularza
+app.post('/api/tasks', (req, res) => {
+    Tasks.push(req.body);
+    console.log("Received tasks:", req.body);
+    res.json({message: "Tasks received"});
 })
+const mysql = require('mysql2');
+
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: '', // lub 'admin' jeśli ustawiłeś hasło
+  database: 'logs' // nazwij bazę jak chcesz
+});
+
+connection.connect(err => {
+  if (err) {
+    console.error('MySQL connection error:', err);
+    return;
+  }
+  console.log('Connected to MySQL!');
+});
+
+
 
