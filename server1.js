@@ -27,12 +27,29 @@
 // Serwowanie plików statycznych (np. logo.png)
     app.use(express.static(__dirname));
 
+//Obsługuje żądanie GET na ścieżkę /api/data i zwraca tablicę Users
 app.get('/api/data', (req, res) => { 
-    const sampleData = { 
+    res.json(Users); 
+});
+
+//Middleware do parsowania JSON — musi być przed POST
+ app.use(express.json());
+//Tworzy przykładową tablicę użytkowników
+    let Users = [
+      {
         name: "Jan Kowalski", 
         age: 30, 
-        occupation: "Software Developer" 
-    }; 
-    res.json(sampleData); 
-}); 
-app.use(express.json());
+        occupation: "Software Developer"  
+      }  
+    ]
+//GET /api/data — zwraca dane użytkowników
+app.get('/api/data', (req, res) => {
+    res.json(Users);
+});
+//POST /api/data — odbiera dane z formularza
+app.post('/api/data', (req, res) => {
+    Users.push(req.body);
+    console.log("Received data:", req.body);
+    res.json({message: "Data received"});
+})
+

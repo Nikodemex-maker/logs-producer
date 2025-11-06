@@ -43,15 +43,13 @@
     <button onclick="console.log('Button clicked! Open the console to see more.')">Show the console.</button>
     <input id="a" type="text" placeholder="Enter Name">
     <input id="b" type="number" placeholder="Enter Age">
-      <button onclick="divide()">Save</button>
+      <button onclick="showMessage()">Save</button>
       <div id="result"></div>
       <div id="json-output"></div>
 
   <script>
 
     //console.log('%cWelcome to the console! 👋', 'color: purple; font-size: 25px; font-weight: bold;');//
-    
-    src="script.js"
 
     // Prosty log do konsoli
     console.log('%cThe page has been loaded.', 'color: green; font-weight: bold; font-size: 20px;');
@@ -67,12 +65,12 @@
 
     //console.log(`%cName: Nikodem, Age: 16`, 'color: aquamarine; font-weight: bold; font-size: 16px;');//
 
-  function divide() {
+  function showMessage() {
     var a = parseInt(document.querySelector("#a").value);
     var b = parseInt(document.querySelector("#b").value);
     document.querySelector("#result").textContent="I know you :)";
   }
-  function divide() {
+  function showMessage() {
     var a = parseInt(document.querySelector("#a").value);
     var b = parseInt(document.querySelector("#b").value);
 
@@ -86,43 +84,78 @@
   </script>
 
   <script>
-  fetch('/api/data')
-    .then(response => response.json())
-    .then(data => {
-      const output = `
-        <p><strong>Name:</strong> ${data.name}</p>
-        <p><strong>Age:</strong> ${data.age}</p>
-        <p><strong>Occupation:</strong> ${data.occupation}</p>
-      `;
-      document.getElementById('json-output').innerHTML = output;
-    })
-    .catch(error => {
-      console.error('Unable to load data:', error);
-    });
-</script>
+    function fetchData() {
+      fetch('/api/data')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('json-output').innerHTML = "";
+          data.forEach(data => {
+          const output = `
+           <div style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+            <p><strong>Name:</strong> ${data.name}</p>
+            <p><strong>Age:</strong> ${data.age}</p>
+            <p><strong>Occupation:</strong> ${data.occupation}</p>
+            </div>
+          `;
+          document.getElementById('json-output').innerHTML += output;
+          });
+        })
+        .catch(error => {
+          console.error('Unable to load data:', error);
+        });
+    }
+      
+    fetchData();
 
-  <script>
-    function divide() {
+    //Zapisuje dane wpisane w formulrzu i wyświetla je pod spodem //
+    function showMessage() {
       const name = document.querySelector("#a").value;
       const age = document.querySelector("#b").value;
 
       if (name && age) {
-        const resultBox = document.querySelector("#result");
-        resultBox.innerHTML += ` 
-        <div style = "margin-bottom: 25px;">
-          <p><strong>Name:</strong>${name}</p>
-          <p><strong>Age:</strong>${age}</p>
-        </div>
-      `;}
-
-      else{
-        document.querySelector("#result").textContent = "Please enter both, name and age."
+      //   const resultBox = document.querySelector("#result");
+      //   resultBox.innerHTML += ` 
+      //   <div style = "margin-bottom: 25px;">
+      //     <p><strong>Name:</strong>${name}</p>
+      //     <p><strong>Age:</strong>${age}</p>
+      //   </div>
+      // `;
+      const newUser = {
+        name: name,
+        age: age
+      };
+      fetch('http://localhost:3000/api/data',{
+        method : 'POST', 
+        headers: {'Content-Type': 'application/json'},
+        body:JSON.stringify(newUser)
+      }).then(res => {
+        if (!res.ok){
+         console.log('Problem');
+        return;
+      }
+      
+        return res.json();
+      }).then(data => {
+        console.log('Success');
+        fetchData();
+      }) .catch(error=> {
+        console.log(error);
+      });
+      }else{
+        alert ("An error has occurred. Please try again later.");
       }
         document.querySelector("#a").value = "";
         document.querySelector("#b").value = "";
     }
   </script>
-   
 
+  <script>
+    //Tylko liczby 0-9 żadnych liter czy znaków !!!
+    document.querySelector("#b").addEventListener("keypress", function (e){
+      if (!/[0-9]/.test(e.key)) {
+        e.preventDefault();
+      }
+    });
+  </script>
 </body>
 </html>
