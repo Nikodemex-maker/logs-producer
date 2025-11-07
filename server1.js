@@ -45,12 +45,29 @@ app.get('/api/tasks', (req, res) => {
 app.get('/api/tasks', (req, res) => {
     res.json(Tasks);
 });
-//POST /api/tasks — odbiera dane z formularza
+//POST /api/tasks — odbiera dane z formularza i wysyła do bazy danych
 app.post('/api/tasks', (req, res) => {
-    Tasks.push(req.body);
-    console.log("Received tasks:", req.body);
-    res.json({message: "Tasks received"});
-})
+    const { task, status, deadline } = req.body;
+//Sprawdza poprawność danych w formularzu
+    if (!task || !status || !deadline) {
+        return res.status(400).json({ message: 'Brakuje danych zadania' });
+    }
+
+    // Zapisz do lokalnej tablicy (opcjonalnie)
+    //Tasks.push({ task, status, deadline });
+
+    // Zapisz do bazy danych
+    const sql = 'INSERT INTO tasks (task, status, deadline) VALUES (?, ?, ?)';
+    connection.query(sql, [task, status, deadline], (err, result) => {
+        if (err) {
+            console.error('Error saving to the database:', err);
+            return res.status(500).json({ message: 'Database error' });//500 wystąpił błąd po stronie serwera.
+        }
+        console.log('Task saved to the database');
+        res.json({ message: 'Task saved successfully' });
+    });
+});
+
 const mysql = require('mysql2');
 
 const connection = mysql.createConnection({
