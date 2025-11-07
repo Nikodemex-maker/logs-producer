@@ -27,30 +27,42 @@
     app.use(express.static(__dirname));
 
 //Obsługuje żądanie GET na ścieżkę /api/data i zwraca tablicę Users
-app.get('/api/tasks', (req, res) => { 
-    res.json(Tasks); 
-});
+//app.get('/api/tasks', (req, res) => { 
+//   res.json(Tasks); 
+//});
 
 //Middleware do parsowania JSON — musi być przed POST
- app.use(express.json());
+// app.use(express.json());
 //Tworzy przykładową tablicę użytkowników
-    let Tasks = [
-      {
-        task: "Finish homework", 
-        status: "In progress",
-        deadline: "Before evening"  
-      }  
-    ]
+//    let Tasks = [
+//      {
+//       task: "Finish homework", 
+//        status: "In progress",
+//       deadline: "Before evening"  
+//      }  
+//  ]
+
 //GET /api/tasks — zwraca dane użytkowników
 app.get('/api/tasks', (req, res) => {
-    res.json(Tasks);
+    const sql = 'SELECT * FROM tasks';
+    connection.query(sql, (err, results) =>{
+        if (err){
+            console.error('Error fetching tasks from the database', err);
+            return res.status(500).json({ message: 'Database error'});
+        }
+        res.json(results);
+    })
 });
+
+app.use(express.json());
+
 //POST /api/tasks — odbiera dane z formularza i wysyła do bazy danych
 app.post('/api/tasks', (req, res) => {
+    console.log(req.body);
     const { task, status, deadline } = req.body;
 //Sprawdza poprawność danych w formularzu
     if (!task || !status || !deadline) {
-        return res.status(400).json({ message: 'Brakuje danych zadania' });
+        return res.status(400).json({ message: 'Missing task data' });
     }
 
     // Zapisz do lokalnej tablicy (opcjonalnie)
@@ -61,7 +73,7 @@ app.post('/api/tasks', (req, res) => {
     connection.query(sql, [task, status, deadline], (err, result) => {
         if (err) {
             console.error('Error saving to the database:', err);
-            return res.status(500).json({ message: 'Database error' });//500 wystąpił błąd po stronie serwera.
+            return res.status(500).json({ message: 'Database error' });   //500 wystąpił błąd po stronie serwera.
         }
         console.log('Task saved to the database');
         res.json({ message: 'Task saved successfully' });
