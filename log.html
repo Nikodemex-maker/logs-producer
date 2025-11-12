@@ -4,71 +4,66 @@
   <meta charset="UTF-8">
   <title>CodeMaster Academy</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: silver;
-      text-align: center;
+    body { 
+      margin: 0; 
+      font-family: Arial, sans-serif; 
+      background-color: silver; 
+      text-align: center; 
     }
-
-    header {
-      background-color: white;
-      padding: 20px;
+    header { 
+      background-color: white; 
+      padding: 20px; 
     }
-
-    .logo {
-      width: 150px;
-      height: auto;
+    .logo { 
+      width: 150px; 
+      height: auto; 
     }
-
-    h1 {
-      color: black;
-      margin-top: 40px;
-      font-weight: bold;
+    h1 { 
+      color: black; 
+      margin-top: 40px; 
+      font-weight: bold; 
       font-size:32px;
-      text-shadow: 0 0 10px #00f, 0 0 20px rgb(214, 62, 214), 0 0 10px purple;
+      text-shadow: 0 0 10px #00f, 0 0 20px rgb(214, 62, 214), 0 0 10px purple; 
     }
-
-    p {
-      color: black;
-      text-shadow: 0 0 10px rgb(214, 62, 214), 0 0 20px #00f, 0 0 10px purple;    
+    p { 
+      color: black; 
+      text-shadow: 0 0 10px rgb(214, 62, 214), 0 0 20px #00f, 0 0 10px purple; 
     }
-
-    #form-section {
-      margin-top: 30px;
+    #form-section { 
+      margin-top: 30px; 
     }
-
-    input {
-      margin: 5px;
-      padding: 8px;
-      border-radius: 5px;
+    input { 
+      margin: 5px; 
+      padding: 8px; 
+      border-radius: 5px; 
       border: 1px solid #ccc;
     }
-
-    button {
-      margin: 10px;
-      padding: 10px 20px;
-      border: none;
-      background-color: #333;
+    button { 
+      margin: 10px; 
+      padding: 10px 20px; 
+      border: none; 
+      background-color: #333; 
       color: white;
-      border-radius: 5px;
-      cursor: pointer;
+      border-radius: 5px; 
+      cursor: pointer; 
     }
-
-    ul {
-      list-style-type: disc;
-      padding-left: 40px;
-      text-align: left;
-      max-width: 600px;
-      margin: 20px auto;
+    ul { 
+      list-style-type: disc; 
+      padding-left: 40px; 
+      text-align: left; 
+      max-width: 600px; 
+      margin: 20px auto; 
     }
-
-    li {
-      margin-bottom: 15px;
-      background-color: #fff;
-      padding: 10px;
+    li { 
+      margin-bottom: 15px; 
+      background-color: #fff; 
+      padding: 10px; 
       border-radius: 5px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+    }
+    #result { 
+      margin-top: 10px; 
+      font-weight: bold; 
     }
   </style>
 </head>
@@ -89,101 +84,59 @@
       <button onclick="location.reload()">Refresh</button>
       <div id="result"></div>
     </div>
-
     <div id="json-output"></div>
   </main>
 <script>
-      function saveTask() {
-        const task = document.querySelector("#task").value;
-        const status = document.querySelector("#status").value;
-        const deadline = document.querySelector("#deadline").value;
-        const result = document.querySelector("#result");
-
-        if (!task || !status || !deadline) {
-          alert("Please fill in all fields.");
-          return;
-        }
-
-        const newTask = { task, status, deadline };
-
-        fetch('http://localhost:3000/api/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newTask)
-        })
-        .then(response => {
-          const messages = {
-            200: 'I saved it for you',
-            400: 'Missing task data!',
-            404: 'Endpoint not found!',
-            500: 'Server error!'
-          };
-
-          const message = messages[response.status] || 'Unexpected error occurred';
-          result.textContent = message;
-          console.log(message);
-
-          if (response.status === 200) return response.json();
-          throw new Error(message);
-        })
-        .then(() => fetchTasks())
-        .catch(() => {
-          result.textContent = 'Connection error!';
-          console.log('Connection error!');
-        });
-
-        document.querySelector("#task").value = "";
-        document.querySelector("#status").value = "";
-        document.querySelector("#deadline").value = "";
-      }
-</script>
-
-
-  <script>
-    console.log('%cThe page has been loaded.', 'color: green; font-weight: bold; font-size: 20px');
-
-    const logo = document.getElementById("logo");
-    if (logo.complete && logo.naturalHeight !== 0) {
-      console.log('%cThe logo has been loaded successfully.', 'color:lightgreen; font-weight: bold; font-size:18px');
-    } else {
-      console.log('%cError: The logo failed to load.', 'color:red; font-weight: bold; font-size:25px');
+  function saveTask() {
+    try {
+      throw new Error("❌ Celowy błąd!");
+    } catch (err) {
+      alert("Wystąpił błąd: " + err.message);
     }
-
+  }
+</script>
+  <script>
     function saveTask() {
       const task = document.querySelector("#task").value;
       const status = document.querySelector("#status").value;
       const deadline = document.querySelector("#deadline").value;
+      const result = document.querySelector("#result");
 
-      if (task && status && deadline) {
-        const newTask = { task, status, deadline };
-  
-        fetch('http://localhost:3000/api/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newTask)
-        })
-        .then(res => {
-          if (!res.ok) {
-            console.log('Problem');
-            return;
-          }
-          return res.json();
-        })
-        .then(data => {
-          console.log('Task saved');
-          document.querySelector("#result").textContent = "I saved it for you :)";
-          fetchTasks();
-        })
-        .catch(error => {
-          console.log(error);
-        });
-
-        document.querySelector("#task").value = "";
-        document.querySelector("#status").value = "";
-        document.querySelector("#deadline").value = "";
-      } else {
-        alert("Please fill in all fields.");
+      if (!task || !status || !deadline) {
+        result.textContent = "⚠️ Please fill in all fields.";
+        return;
       }
+
+      const newTask = { task, status, deadline };
+
+      fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTask)
+      })
+      .then(response => {
+        const messages = {
+          200: '✅ Task saved successfully!',
+          400: '⚠️ Missing task data!',
+          404: '❌ Endpoint not found!',
+          500: '💥 Server error!'
+        };
+        const message = messages[response.status] || `Unexpected status: ${response.status}`;
+        result.textContent = message;
+        console.log('Status:', response.status, message);
+
+        if (!response.ok) throw new Error(message);
+        return response.json();
+      })
+      .then(() => fetchTasks())
+      .catch(() => {
+        result.textContent = 'Connection error!';
+        console.log('Connection error!');
+      });
+
+      document.querySelector("#task").value = "";
+      document.querySelector("#status").value = "";
+      document.querySelector("#deadline").value = "";
     }
 
     function fetchTasks() {
@@ -194,25 +147,40 @@
           output.innerHTML = '';
 
           const list = document.createElement('ul');
-
           data.forEach(item => {
             const listItem = document.createElement('li');
             listItem.innerHTML = `
               <strong>📝 Task:</strong> ${item.task}<br>
               <strong>📌 Status:</strong> ${item.status}<br>
-              <strong>⏰ Deadline:</strong> ${item.deadline}
+              <strong>⏰ Deadline:</strong> ${item.deadline}<br>
+              <button onclick="deleteTask(${item.id})">Delete</button>
             `;
-            list.appendChild(listItem); 
+            list.appendChild(listItem);
           });
-            output.appendChild(list);         
-        });
-      }
-      fetchTasks(); // ← żeby dane pojawiły się od razu po załadowaniu strony
+          output.appendChild(list);
+        })
+        .catch(err => console.error('Error fetching tasks:', err));
+    }
 
+    function deleteTask(id) {
+      fetch(`/api/tasks/${id}`, { method: 'DELETE' })
+        .then(res => {
+          const result = document.querySelector('#result');
+          if (res.ok) {
+            result.textContent = 'Task deleted.';
+          } else {
+            result.textContent = 'Failed to delete task.';
+          }
+          return res.json().catch(() => null);
+        })
+        .then(() => fetchTasks())
+        .catch(err => {
+          console.error('Error:', err);
+          document.querySelector('#result').textContent = 'Connection error during delete.';
+        });
+    }
+
+    fetchTasks();
   </script>
 </body>
 </html>
-
-
-
-
