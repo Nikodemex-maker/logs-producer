@@ -10,14 +10,17 @@
       background-color: silver; 
       text-align: center; 
     }
+
     header { 
       background-color: white; 
       padding: 20px; 
     }
+
     .logo { 
       width: 150px; 
       height: auto; 
     }
+
     h1 { 
       color: black; 
       margin-top: 40px; 
@@ -25,19 +28,23 @@
       font-size:32px;
       text-shadow: 0 0 10px #00f, 0 0 20px rgb(214, 62, 214), 0 0 10px purple; 
     }
+
     p { 
       color: black; 
       text-shadow: 0 0 10px rgb(214, 62, 214), 0 0 20px #00f, 0 0 10px purple; 
     }
+
     #form-section { 
       margin-top: 30px; 
     }
+
     input { 
       margin: 5px; 
       padding: 8px; 
       border-radius: 5px; 
       border: 1px solid #ccc;
     }
+
     button { 
       margin: 10px; 
       padding: 10px 20px; 
@@ -47,13 +54,15 @@
       border-radius: 5px; 
       cursor: pointer; 
     }
+
     ul { 
-      list-style-type: disc; 
-      padding-left: 40px; 
+      list-style-type: none; 
+      padding: 0; 
       text-align: left; 
       max-width: 600px; 
       margin: 20px auto; 
     }
+
     li { 
       margin-bottom: 15px; 
       background-color: #fff; 
@@ -61,41 +70,74 @@
       border-radius: 5px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
     }
+
     #result { 
       margin-top: 10px; 
       font-weight: bold; 
     }
+    #dark-mode-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: #333;
+      color: white;
+      cursor: pointer;
+    }
+
+    /* Styl w trybie ciemnym */
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode header {
+      background-color: #1f1f1f;
+    }
+
+    body.dark-mode li {
+      background-color: #1f1f1f;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode button {
+      background-color: #444;
+      color: #fff;
+    }
+    header {
+  position: relative;
+    }
+
+
   </style>
 </head>
 <body>
   <header>
     <img src="logo.png" alt="Logo CodeMaster Academy" class="logo" id="logo">
+    <button id="dark-mode-toggle">🌙 Dark Mode</button>
   </header>
 
   <main>
     <h1>Welcome to CodeMaster Academy!</h1>
     <p>Start your experience with software right now!</p>
 
+    <!-- Sekcja formularza -->
     <div id="form-section">
-      <input id="task" type="text" placeholder="Enter Task">
-      <input id="status" type="text" placeholder="Enter Status">
-      <input id="deadline" type="text" placeholder="Enter Deadline">
+      <input id="task" type="text" placeholder="Enter Task" required>
+      <input id="status" type="text" placeholder="Enter Status" required>
+      <input id="deadline" type="text" placeholder="Enter Deadline" required>
       <button onclick="saveTask()">Save Task</button>
-      <button onclick="location.reload()">Refresh</button>
       <div id="result"></div>
     </div>
-    <div id="json-output"></div>
+
+    <!-- Lista zadań -->
+    <div id="tasks-output"></div>
   </main>
-<script>
-  function saveTask() {
-    try {
-      throw new Error("❌ Celowy błąd!");
-    } catch (err) {
-      alert("Wystąpił błąd: " + err.message);
-    }
-  }
-</script>
+
   <script>
+    // --- Save Task
     function saveTask() {
       const task = document.querySelector("#task").value;
       const status = document.querySelector("#status").value;
@@ -123,15 +165,13 @@
         };
         const message = messages[response.status] || `Unexpected status: ${response.status}`;
         result.textContent = message;
-        console.log('Status:', response.status, message);
 
         if (!response.ok) throw new Error(message);
         return response.json();
       })
-      .then(() => fetchTasks())
+      .then(() => refreshTasks())
       .catch(() => {
         result.textContent = 'Connection error!';
-        console.log('Connection error!');
       });
 
       document.querySelector("#task").value = "";
@@ -139,48 +179,79 @@
       document.querySelector("#deadline").value = "";
     }
 
+    // --- Fetch Tasks
     function fetchTasks() {
-      fetch('/api/tasks')
+      return fetch('/api/tasks')
         .then(response => response.json())
-        .then(data => {
-          const output = document.getElementById('json-output');
-          output.innerHTML = '';
-
-          const list = document.createElement('ul');
-          data.forEach(item => {
-            const listItem = document.createElement('li');
-            listItem.innerHTML = `
-              <strong>📝 Task:</strong> ${item.task}<br>
-              <strong>📌 Status:</strong> ${item.status}<br>
-              <strong>⏰ Deadline:</strong> ${item.deadline}<br>
-              <button onclick="deleteTask(${item.id})">Delete</button>
-            `;
-            list.appendChild(listItem);
-          });
-          output.appendChild(list);
-        })
-        .catch(err => console.error('Error fetching tasks:', err));
+        .catch(() => []);
     }
 
+    // --- Refresh tasks only
+    function refreshTasks() {
+      fetchTasks().then(tasks => {
+        const output = document.getElementById('tasks-output');
+        output.innerHTML = '';
+
+        const list = document.createElement('ul');
+
+        tasks.forEach(item => {
+          const listItem = document.createElement('li');
+          listItem.innerHTML = `
+            <strong>📝 Task:</strong> ${item.task}<br>
+            <strong>📌 Status:</strong> ${item.status}<br>
+            <strong>⏰ Deadline:</strong> ${item.deadline}<br>
+            <button onclick="deleteTask(${item.id})">Delete</button>
+          `;
+          list.appendChild(listItem);
+        });
+
+        output.appendChild(list);
+      });
+    }
+
+    // --- Delete Task
     function deleteTask(id) {
       fetch(`/api/tasks/${id}`, { method: 'DELETE' })
-        .then(res => {
-          const result = document.querySelector('#result');
-          if (res.ok) {
-            result.textContent = 'Task deleted.';
-          } else {
-            result.textContent = 'Failed to delete task.';
-          }
-          return res.json().catch(() => null);
-        })
-        .then(() => fetchTasks())
-        .catch(err => {
-          console.error('Error:', err);
-          document.querySelector('#result').textContent = 'Connection error during delete.';
-        });
+        .then(res => res.json().catch(() => null))
+        .then(() => refreshTasks());
     }
 
-    fetchTasks();
+    // --- Global error handler (frontend logs)
+    window.onerror = function(message, source, lineno, colno, error) {
+      const logEntry = {
+        timestamp: new Date().toISOString(),
+        level: "error",
+        source: source,
+        message: message,
+        user_agent: navigator.userAgent,
+      };
+
+      fetch('/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(logEntry)
+      });
+    };
+
+    window.addEventListener("unhandledrejection", function(event) {
+      const logEntry = {
+        timestamp: new Date().toISOString(),
+        level: "error",
+        source: "Promise",
+        message: event.reason ? event.reason.toString() : "Unhandled rejection",
+        user_agent: navigator.userAgent,
+        type: "frontend"
+      };
+
+      fetch('/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(logEntry)
+      });
+    });
+
+    // --- Load tasks on page start
+    refreshTasks();
   </script>
 </body>
 </html>
