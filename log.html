@@ -139,6 +139,8 @@
   <script>
     // --- Save Task
     function saveTask() {
+      throw new Error("Missing data");
+      
       const task = document.querySelector("#task").value;
       const status = document.querySelector("#status").value;
       const deadline = document.querySelector("#deadline").value;
@@ -217,7 +219,7 @@
     }
 
     // --- Global error handler (frontend logs)
-    window.onerror = function(message, source, lineno, colno, error) {
+    window.onerror = function(message, source, error) {
       const logEntry = {
         timestamp: new Date().toISOString(),
         level: "error",
@@ -237,7 +239,7 @@
       const logEntry = {
         timestamp: new Date().toISOString(),
         level: "error",
-        source: "Promise",
+        source,
         message: event.reason ? event.reason.toString() : "Unhandled rejection",
         user_agent: navigator.userAgent,
         type: "frontend"
@@ -252,6 +254,19 @@
 
     // --- Load tasks on page start
     refreshTasks();
+  </script>
+  <script>
+    // --- Dark Mode toggle
+    document.getElementById("dark-mode-toggle").addEventListener("click", function() {
+      document.body.classList.toggle("dark-mode");
+
+      // zmiana tekstu przycisku dla lepszego UX
+      if (document.body.classList.contains("dark-mode")) {
+        this.textContent = "☀️ Light Mode";
+      } else {
+        this.textContent = "🌙 Dark Mode";
+      }
+    });
   </script>
 </body>
 </html>
