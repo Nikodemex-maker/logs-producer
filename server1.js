@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cron = require('node-cron');
-const nodemailer = require('nodemailer');   // <-- dodane
+const nodemailer = require('nodemailer'); // <-- dodane
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,7 +19,7 @@ app.use(express.static(__dirname));
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '',    // wpisz swoje hasło
+  password: '', // wpisz swoje hasło
   database: 'logs'
 });
 
@@ -168,7 +168,7 @@ app.post('/api/logs', (req, res) => {
   const sql = 'INSERT INTO logs (level, source, message, user_ip, user_agent) VALUES (?, ?, ?, ?, ?)';
   connection.query(sql, [
     level || 'ERROR',
-    source ,
+    source,
     message,
     req.ip,
     user_agent || req.headers['user-agent']
@@ -188,12 +188,11 @@ app.get('/api/send-logs', (req, res) => {
       logError('Error fetching logs for email: ' + err.message, req);
       return res.status(500).json({ message: 'Database error' });
     }
-
     try {
       await transporter.sendMail(mailOptions);
       res.json({ message: 'Logs sent via email!' });
     } catch (e) {
-      logError('Error sending  logs via email: ' + e.message, req);
+      logError('Error sending logs via email: ' + e.message, req);
       res.status(500).json({ message: 'Email send error' });
     }
   });
@@ -212,7 +211,7 @@ app.use((err, req, res, next) => {
 });
 
 // --- CRON: odświeżanie co 10 sekund
-cron.schedule('*/10 * * * * *', () => {
+cron.schedule('*/15 * * * *', () => {
   console.log('⏰ CRON: odświeżanie listy zadań...');
 
   // Podgląd zadań
@@ -262,10 +261,8 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-
-
 // Wyświetlanie w cmd powyższego kodu
-  app.get('/api/error-aggregate', (req, res) => {
+app.get('/api/error-aggregate', (req, res) => {
   const sql = "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND timestamp >= NOW() - INTERVAL 30 MINUTE";
   connection.query(sql, (err, rows) => {
     if (err) return res.status(500).json({ message: 'Database error' });
