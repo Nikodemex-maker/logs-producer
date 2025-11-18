@@ -59,12 +59,35 @@ app.delete('/api/tasks/:id', (req, res) => {
   });
 });
 
+app.put('/api/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  const { task, status, deadline } = req.body;
+
+  if (!task || !status || !deadline) {
+    logError('Missing task data for update', req);
+    return res.status(400).json({ message: 'Missing task data' });
+  }
+
+  const sql = 'UPDATE tasks SET task = ?, status = ?, deadline = ? WHERE id = ?';
+  connection.query(sql, [task, status, deadline, id], (err, result) => {
+    if (err) {
+      logError('Error updating task: ' + err.message, req);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    if (result.affectedRows === 0) {
+      logError(`Task not found for update id=${id}`, req);
+      return res.status(404).json({ message: 'Task not found' });
+    }
+    res.json({ message: 'Task updated successfully' });
+  });
+});
+
 // Połączenie z MySQL
 const connection = mysql.createConnection({
-  host: 'process.env.DB_HOST',
-  user: 'process.env.DB_USER',
-  password: 'process.env.DB_PASSWORD', // wpisz swoje hasło
-  database: 'process.env.DB_NAME'
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD, // wpisz swoje hasło
+  database: process.env.DB_NAME
 });
 
 connection.connect(err => {
@@ -95,8 +118,8 @@ function logError(message, req, source = 'BACKEND') {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'process.env.MAIL_USER',
-    pass: 'process.env.MAIL_PASS' // ← tutaj wklej App Password z Gmaila
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS // ← tutaj wklej App Password z Gmaila
   }
 });
 
@@ -135,8 +158,8 @@ cron.schedule('*/5 * * * *', () => {
           .join('\n');
 
         const mailOptions = {
-          from: 'process.env.MAIL_USER',
-          to: 'process.env.MAIL_TO',
+          from: process.env.MAIL_USER,
+          to: process.env.MAIL_TO,
           subject: '📊 Statystyki błędów z systemu',
           text: statsText
         };
