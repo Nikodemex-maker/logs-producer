@@ -5,6 +5,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cron = require('node-cron');
 const nodemailer = require('nodemailer');
+require('dotenv').config();
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,12 +16,55 @@ app.use(express.json());
 app.use(express.static('public'));
 app.use(express.static(__dirname));
 
+// --- Zadania
+app.get('/api/tasks', (req, res) => {
+  connection.query('SELECT * FROM tasks', (err, results) => {
+    if (err) {
+      logError('Error fetching tasks: ' + err.message, req);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.json(results);
+  });
+});
+
+app.post('/api/tasks', (req, res) => {
+  const { task, status, deadline } = req.body;
+  if (!task || !status || !deadline) {
+    logError('Missing task data', req);
+    return res.status(400).json({ message: 'Missing task data' });
+  }
+  const sql = 'INSERT INTO tasks (task, status, deadline) VALUES (?, ?, ?)';
+  connection.query(sql, [task, status, deadline], (err) => {
+    if (err) {
+      logError('Error saving task: ' + err.message, req);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.json({ message: 'Task saved successfully' });
+  });
+});
+
+app.delete('/api/tasks/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'DELETE FROM tasks WHERE id = ?';
+  connection.query(sql, [id], (err, result) => {
+    if (err) {
+      logError('Error deleting task: ' + err.message, req);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    if (result.affectedRows === 0) {
+      logError(`Task not found for id=${id}`, req);
+      return res.status(404).json({ message: 'Task not found' });
+    }
+    res.json({ message: 'Task deleted successfully' });
+  });
+});
+
 // Połączenie z MySQL
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '', // wpisz swoje hasło
-  database: 'logs'
+  host: 'process.env.DB_HOST',
+  user: 'process.env.DB_USER',
+  password: 'process.env.DB_PASSWORD', // wpisz swoje hasło
+  database: 'process.env.DB_NAME'
 });
 
 connection.connect(err => {
@@ -50,8 +95,8 @@ function logError(message, req, source = 'BACKEND') {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'nikodemexfortnitelaptop@gmail.com',
-    pass: 'mehl qidz pyho uzdd' // ← tutaj wklej App Password z Gmaila
+    user: 'process.env.MAIL_USER',
+    pass: 'process.env.MAIL_PASS' // ← tutaj wklej App Password z Gmaila
   }
 });
 
@@ -90,8 +135,8 @@ cron.schedule('*/5 * * * *', () => {
           .join('\n');
 
         const mailOptions = {
-          from: 'nikodemexfortnitelaptop@gmail.com',
-          to: 'nikodemfullcontrol@gmail.com',
+          from: 'process.env.MAIL_USER',
+          to: 'process.env.MAIL_TO',
           subject: '📊 Statystyki błędów z systemu',
           text: statsText
         };
@@ -100,7 +145,7 @@ cron.schedule('*/5 * * * *', () => {
           if (error) {
             console.error('❌ Błąd przy wysyłce maila:', error.message);
           } else {
-            console.log('✅ Statystyki wysłane na maila:', info.response);
+            console.log('✅ Statystyki wysłane na maila:');
           }
         });
       }
