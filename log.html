@@ -188,7 +188,6 @@
         .catch(() => []);
     }
 
-    // --- Refresh tasks only
     function refreshTasks() {
       fetchTasks().then(tasks => {
         const output = document.getElementById('tasks-output');
@@ -198,18 +197,51 @@
 
         tasks.forEach(item => {
           const listItem = document.createElement('li');
-          listItem.innerHTML = `
-            <strong>📝 Task:</strong> ${item.task}<br>
-            <strong>📌 Status:</strong> ${item.status}<br>
-            <strong>⏰ Deadline:</strong> ${item.deadline}<br>
-            <button onclick="deleteTask(${item.id})">Delete</button>
-          `;
+            listItem.innerHTML = `
+              <div id="task-block-${item.id}">
+                <strong>📝 Task:</strong> ${item.task}<br>
+                <strong>📌 Status:</strong> ${item.status}<br>
+                <strong>⏰ Deadline:</strong> ${item.deadline}<br>
+                <button onclick="editTask(${item.id})">Edit</button>
+                <button onclick="deleteTask(${item.id})">Delete</button>
+              </div>
+            `;
           list.appendChild(listItem);
         });
 
         output.appendChild(list);
       });
     }
+    function editTask(id) {
+      const block = document.getElementById(`task-block-${id}`);
+      const taskText = block.querySelector("strong:nth-child(1)").nextSibling.textContent.trim();
+      const statusText = block.querySelector("strong:nth-child(3)").nextSibling.textContent.trim();
+      const deadlineText = block.querySelector("strong:nth-child(5)").nextSibling.textContent.trim();
+
+      block.innerHTML = `
+        <input id="edit-task-${id}" type="text" value="${taskText}">
+        <input id="edit-status-${id}" type="text" value="${statusText}">
+        <input id="edit-deadline-${id}" type="text" value="${deadlineText}">
+        <button onclick="updateTask(${id})">Save</button>
+        <button onclick="refreshTasks()">Cancel</button>
+      `;
+    }
+
+    function updateTask(id) {
+      const task = document.getElementById(`edit-task-${id}`).value;
+      const status = document.getElementById(`edit-status-${id}`).value;
+      const deadline = document.getElementById(`edit-deadline-${id}`).value;
+
+      fetch(`/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task, status, deadline })
+      })
+      .then(res => res.json())
+      .then(() => refreshTasks())
+      .catch(() => alert("❌ Update failed!"));
+    }
+
 
     // --- Delete Task
     function deleteTask(id) {

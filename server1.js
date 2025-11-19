@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.static('public'));
 app.use(express.static(__dirname));
 
-// --- Zadania
+// Create task
 app.get('/api/tasks', (req, res) => {
   connection.query('SELECT * FROM tasks', (err, results) => {
     if (err) {
@@ -27,6 +27,7 @@ app.get('/api/tasks', (req, res) => {
   });
 });
 
+// Read Task
 app.post('/api/tasks', (req, res) => {
   const { task, status, deadline } = req.body;
   if (!task || !status || !deadline) {
@@ -43,6 +44,7 @@ app.post('/api/tasks', (req, res) => {
   });
 });
 
+// Delete Task
 app.delete('/api/tasks/:id', (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM tasks WHERE id = ?';
@@ -58,7 +60,7 @@ app.delete('/api/tasks/:id', (req, res) => {
     res.json({ message: 'Task deleted successfully' });
   });
 });
-
+// Update Task
 app.put('/api/tasks/:id', (req, res) => {
   const { id } = req.params;
   const { task, status, deadline } = req.body;
@@ -82,11 +84,23 @@ app.put('/api/tasks/:id', (req, res) => {
   });
 });
 
+
+// --- Reset form
+function resetForm() {
+  document.querySelector("#task").value = "";
+  document.querySelector("#status").value = "";
+  document.querySelector("#deadline").value = "";
+  editingTaskId = null;
+  document.querySelector("#save-btn").style.display = "inline-block";
+  document.querySelector("#update-btn").style.display = "none";
+}
+
+
 // Połączenie z MySQL
 const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
+  host: process.env.DB_HOST, //wykorzystanie .env
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD, // wpisz swoje hasło
+  password: process.env.DB_PASSWORD, 
   database: process.env.DB_NAME
 });
 
@@ -124,7 +138,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // --- CRON: co 5 minut liczenie statystyk i wysyłka
-cron.schedule('*/5 * * * *', () => {
+cron.schedule('*/15 * * * *', () => {
   console.log('⏰ CRON: liczenie statystyk błędów...');
 
   const queries = {
@@ -175,6 +189,46 @@ cron.schedule('*/5 * * * *', () => {
     });
   });
 });
+
+// --- CRON: codziennie o 8:00 wysyłka zadań do zrobienia
+cron.schedule('0 8 * * 1-5', () => {
+  console.log('⏰ CRON: wysyłka zadań do zrobienia...');
+
+  const sql = "SELECT task, status, deadline FROM tasks";
+
+  connection.query(sql, (err, rows) => {
+    if (err) {
+      console.error('❌ Błąd przy pobieraniu zadań:', err.message);
+      return;
+    }
+
+    if (rows.length === 0) {
+      console.log('Brak zadań do wysłania.');
+      return;
+    }
+
+    // --- Treść maila
+    const tasksText = rows.map(row => {
+      return `📝 ${row.task} | 📌 ${row.status} | ⏰ ${row.deadline}`;
+    }).join('\n');
+
+    const mailOptions = {
+      from: process.env.MAIL_USER,
+      to: process.env.MAIL_TO,
+      subject: '📋 Zadania do zrobienia',
+      text: tasksText
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('❌ Błąd przy wysyłce maila:', error.message);
+      } else {
+        console.log('✅ Zadania wysłane na maila!');
+      }
+    });
+  });
+});
+
 
 // --- Start serwera
 app.listen(PORT, () => {
