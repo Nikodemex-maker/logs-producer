@@ -144,7 +144,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // --- CRON: co 5 minut liczenie statystyk i wysyłka
-cron.schedule('*/15 * * * *', () => {
+cron.schedule('* */5 * * *', () => {
   console.log('⏰ CRON: liczenie statystyk błędów...');
 
   const queries = {
@@ -236,6 +236,6 @@ cron.schedule('0 8 * * 1-5', () => {
 });
 
 // --- Start serwera
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(3000, '0.0.0.0', () => {
+  console.log("Server is running on port 3000");
 });
