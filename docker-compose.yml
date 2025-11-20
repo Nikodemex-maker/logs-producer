@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: codemaster-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-codemaster_db}
+      MYSQL_USER: ${DB_USER:-codemaster_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - codemaster-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  app:
+    build: .
+    container_name: codemaster-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: mysql
+      DB_USER: ${DB_USER:-codemaster_user}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      DB_NAME: ${DB_NAME:-codemaster_db}
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASS: ${MAIL_PASS}
+      MAIL_TO: ${MAIL_TO}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - codemaster-network
+    volumes:
+      - ./log.html:/app/log.html:ro
+
+volumes:
+  mysql_data:
+
+networks:
+  codemaster-network:
+    driver: bridge

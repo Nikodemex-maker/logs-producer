@@ -12,9 +12,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const SECRET = 'super_secret_key';
 
+// Add route to serve log.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "log.html"));
+});
+
 app.use(express.json());
 app.use(express.static('public'));
 app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname)));
 
 // Create task
 app.get('/api/tasks', (req, res) => {
@@ -228,7 +234,6 @@ cron.schedule('0 8 * * 1-5', () => {
     });
   });
 });
-
 
 // --- Start serwera
 app.listen(PORT, () => {

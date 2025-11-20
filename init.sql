@@ -1,0 +1,2 @@
+-- Add your database initialization SQL here
+-- This file will be executed when the MySQL container first starts
