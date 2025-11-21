@@ -186,7 +186,7 @@ cron.schedule('*/5 * * * *', () => {
 
         transporter.sendMail(mailOptions, (error, info) => {
           if (error) {
-            console.error('❌ Błąd przy wysyłce maila:', error.message);
+            console.error('❌ Błąd przy wysyłce maila:', error);
           } else {
             console.log('✅ Statystyki wysłane na maila:');
           }
@@ -227,7 +227,7 @@ cron.schedule('0 8 * * 1-5', () => {
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.error('❌ Błąd przy wysyłce maila:', error.message);
+        console.error('❌ Błąd przy wysyłce maila:', error);
       } else {
         console.log('✅ Zadania wysłane na maila!');
       }
