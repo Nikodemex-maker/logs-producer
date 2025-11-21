@@ -143,8 +143,8 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// --- CRON: co 5 minut liczenie statystyk i wysyłka
-cron.schedule('* */5 * * *', () => {
+// --- CRON: co 5 godzin liczenie statystyk i wysyłka
+cron.schedule('*/5 * * * *', () => {
   console.log('⏰ CRON: liczenie statystyk błędów...');
 
   const queries = {
