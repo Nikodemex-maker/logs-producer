@@ -1,58 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>CodeMaster Academy</title>
+  <title>Task Manager</title>
   <style>
     body { 
       margin: 0; 
       font-family: Arial, sans-serif; 
-      background-color: silver; 
       text-align: center; 
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      min-height: 100vh;
+      color: #fff;
     }
 
     header { 
-      background-color: white; 
+      background: transparent; 
       padding: 20px; 
-    }
-
-    .logo { 
-      width: 150px; 
-      height: auto; 
+      position: relative;
     }
 
     h1 { 
-      color: black; 
       margin-top: 40px; 
       font-weight: bold; 
-      font-size:32px;
-      text-shadow: 0 0 10px #00f, 0 0 20px rgb(214, 62, 214), 0 0 10px purple; 
+      font-size: 36px;
+      text-shadow: 0 0 10px #fff, 0 0 20px #000;
     }
 
     p { 
-      color: black; 
-      text-shadow: 0 0 10px rgb(214, 62, 214), 0 0 20px #00f, 0 0 10px purple; 
+      font-size: 18px;
+      margin-bottom: 30px;
     }
 
-    #form-section { 
-      margin-top: 30px; 
+    form, #form-section {
+      margin: 20px auto;
+      max-width: 400px;
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      backdrop-filter: blur(8px);
     }
 
     input { 
-      margin: 5px; 
-      padding: 8px; 
+      width: 90%;
+      margin: 8px 0; 
+      padding: 10px; 
       border-radius: 5px; 
-      border: 1px solid #ccc;
+      border: none;
+      outline: none;
     }
 
     button { 
-      margin: 10px; 
+      margin-top: 10px; 
       padding: 10px 20px; 
       border: none; 
-      background-color: #333; 
-      color: white;
+      background-color: #fff; 
+      color: #2575fc;
+      font-weight: bold;
       border-radius: 5px; 
       cursor: pointer; 
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #2575fc;
+      color: #fff;
     }
 
     ul { 
@@ -65,240 +77,315 @@
 
     li { 
       margin-bottom: 15px; 
-      background-color: #fff; 
-      padding: 10px; 
-      border-radius: 5px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+      background: rgba(255,255,255,0.15);
+      padding: 12px; 
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2); 
     }
 
-    #result { 
-      margin-top: 10px; 
-      font-weight: bold; 
+    #dark-mode-toggle, #logout-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: #fff;
+      color: #2575fc;
+      cursor: pointer;
+      font-weight: bold;
     }
+
     #dark-mode-toggle {
       position: absolute;
       top: 20px;
       right: 20px;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 5px;
-      background-color: #333;
-      color: white;
-      cursor: pointer;
     }
 
-    /* Styl w trybie ciemnym */
+    #logout-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      display: none; /* ukryty dopóki nie zalogowany */
+    }
+
     body.dark-mode {
-      background-color: #121212;
+      background: linear-gradient(135deg, #000000 0%, #434343 100%);
       color: #e0e0e0;
     }
 
-    body.dark-mode header {
-      background-color: #1f1f1f;
-    }
-
-    body.dark-mode li {
-      background-color: #1f1f1f;
-      color: #e0e0e0;
+    body.dark-mode form, body.dark-mode #form-section, body.dark-mode li {
+      background: rgba(0,0,0,0.4);
+      color: #fff;
     }
 
     body.dark-mode button {
-      background-color: #444;
+      background-color: #2575fc;
       color: #fff;
     }
-    header {
-  position: relative;
+    #app-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      margin-top: 30px;
     }
 
+    #form-section {
+      flex: 1;
+      max-width: 350px;
+    }
+
+    #tasks-output {
+      flex: 1;
+      max-width: 400px;
+      text-align: left;
+    }
+
+    #tasks-output ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #tasks-output li {
+      margin-bottom: 15px;
+      background: rgba(255,255,255,0.15);
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
 
   </style>
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="Logo CodeMaster Academy" class="logo" id="logo">
+    <button id="logout-btn">🚪 Log out</button>
     <button id="dark-mode-toggle">🌙 Dark Mode</button>
   </header>
 
   <main>
-    <h1>Welcome to CodeMaster Academy!</h1>
-    <p>Start your experience with software right now!</p>
+    <h1>Task Manager</h1>
+    <p>Zarządzaj swoimi zadaniami w prosty sposób!</p>
 
-    <!-- Sekcja formularza -->
-    <div id="form-section">
-      <input id="task" type="text" placeholder="Enter Task" required>
-      <input id="status" type="text" placeholder="Enter Status" required>
-      <input id="deadline" type="text" placeholder="Enter Deadline" required>
-      <button onclick="saveTask()">Save Task</button>
-      <div id="result"></div>
+    <!-- Formularze -->
+    <form id="loginForm">
+      <h3>🔑 Logowanie</h3>
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Hasło" required>
+      <button type="submit">Zaloguj</button>
+    </form>
+
+    <form id="registerForm">
+      <h3>📝 Rejestracja</h3>
+      <input type="email" id="regEmail" placeholder="Email" required>
+      <input type="password" id="regPassword" placeholder="Hasło" required>
+      <button type="submit">Zarejestruj</button>
+    </form>
+    <!-- Sekcja zadań -->
+    <div id="app" style="display:none;">
+      <div id="app-container">
+        <!-- Lewa kolumna: formularz -->
+        <div id="form-section">
+          <h3>📋 Dodaj zadanie</h3>
+          <input id="task" placeholder="Task">
+          <input id="status" placeholder="Status">
+          <input id="deadline" placeholder="Deadline">
+          <button onclick="saveTask()">Dodaj</button>
+          <div id="result"></div>
+        </div>
+
+        <!-- Prawa kolumna: lista tasków -->
+        <div id="tasks-output"></div>
+      </div>
     </div>
-
-    <!-- Lista zadań -->
-    <div id="tasks-output"></div>
   </main>
 
-  <script>
-    // --- Save Task
-    function saveTask() {
-      //throw new Error("Missing data");
-      
-      const task = document.querySelector("#task").value;
-      const status = document.querySelector("#status").value;
-      const deadline = document.querySelector("#deadline").value;
-      const result = document.querySelector("#result");
+<script>
+let token = null;
 
-      if (!task || !status || !deadline) {
-        result.textContent = "⚠️ Please fill in all fields.";
-        return;
-      }
+// --- Logowanie
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-      const newTask = { task, status, deadline };
+  const res = await fetch("/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
 
-      fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTask)
-      })
-      .then(response => {
-        const messages = {
-          200: '✅ Task saved successfully!',
-          400: '⚠️ Missing task data!',
-          404: '❌ Endpoint not found!',
-          500: '💥 Server error!'
-        };
-        const message = messages[response.status] || `Unexpected status: ${response.status}`;
-        result.textContent = message;
-
-        if (!response.ok) throw new Error(message);
-        return response.json();
-      })
-      .then(() => refreshTasks())
-      .catch(() => {
-        result.textContent = 'Connection error!';
-      });
-
-      document.querySelector("#task").value = "";
-      document.querySelector("#status").value = "";
-      document.querySelector("#deadline").value = "";
-    }
-
-    // --- Fetch Tasks
-    function fetchTasks() {
-      return fetch('/api/tasks')
-        .then(response => response.json())
-        .catch(() => []);
-    }
-
-    function refreshTasks() {
-      fetchTasks().then(tasks => {
-        const output = document.getElementById('tasks-output');
-        output.innerHTML = '';
-
-        const list = document.createElement('ul');
-
-        tasks.forEach(item => {
-          const listItem = document.createElement('li');
-            listItem.innerHTML = `
-              <div id="task-block-${item.id}">
-                <strong>📝 Task:</strong> ${item.task}<br>
-                <strong>📌 Status:</strong> ${item.status}<br>
-                <strong>⏰ Deadline:</strong> ${item.deadline}<br>
-                <button onclick="editTask(${item.id})">Edit</button>
-                <button onclick="deleteTask(${item.id})">Delete</button>
-              </div>
-            `;
-          list.appendChild(listItem);
-        });
-
-        output.appendChild(list);
-      });
-    }
-    function editTask(id) {
-      const block = document.getElementById(`task-block-${id}`);
-      const taskText = block.querySelector("strong:nth-child(1)").nextSibling.textContent.trim();
-      const statusText = block.querySelector("strong:nth-child(3)").nextSibling.textContent.trim();
-      const deadlineText = block.querySelector("strong:nth-child(5)").nextSibling.textContent.trim();
-
-      block.innerHTML = `
-        <input id="edit-task-${id}" type="text" value="${taskText}">
-        <input id="edit-status-${id}" type="text" value="${statusText}">
-        <input id="edit-deadline-${id}" type="text" value="${deadlineText}">
-        <button onclick="updateTask(${id})">Save</button>
-        <button onclick="refreshTasks()">Cancel</button>
-      `;
-    }
-
-    function updateTask(id) {
-      const task = document.getElementById(`edit-task-${id}`).value;
-      const status = document.getElementById(`edit-status-${id}`).value;
-      const deadline = document.getElementById(`edit-deadline-${id}`).value;
-
-      fetch(`/api/tasks/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ task, status, deadline })
-      })
-      .then(res => res.json())
-      .then(() => refreshTasks())
-      .catch(() => alert("❌ Update failed!"));
-    }
-
-
-    // --- Delete Task
-    function deleteTask(id) {
-      fetch(`/api/tasks/${id}`, { method: 'DELETE' })
-        .then(res => res.json().catch(() => null))
-        .then(() => refreshTasks());
-    }
-
-    // --- Global error handler (frontend logs)
-    window.onerror = function(message, source, error) {
-      const logEntry = {
-        timestamp: new Date().toISOString(),
-        level: "error",
-        source: source,
-        message: message,
-        user_agent: navigator.userAgent,
-      };
-
-      fetch('/api/logs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(logEntry)
-      });
-    };
-
-    window.addEventListener("unhandledrejection", function(event) {
-      const logEntry = {
-        timestamp: new Date().toISOString(),
-        level: "error",
-        source,
-        message: event.reason ? event.reason.toString() : "Unhandled rejection",
-        user_agent: navigator.userAgent,
-        type: "frontend"
-      };
-
-      fetch('/api/logs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(logEntry)
-      });
-    });
-
-    // --- Load tasks on page start
+  const data = await res.json();
+  if (data.token) {
+    token = data.token;
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("registerForm").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("logout-btn").style.display = "inline-block";
     refreshTasks();
-  </script>
-  <script>
-    // --- Dark Mode toggle
-    document.getElementById("dark-mode-toggle").addEventListener("click", function() {
-      document.body.classList.toggle("dark-mode");
+  } else {
+    alert(data.message || "❌ Logowanie nieudane");
+  }
+});
 
-      // zmiana tekstu przycisku dla lepszego UX
-      if (document.body.classList.contains("dark-mode")) {
-        this.textContent = "☀️ Light Mode";
-      } else {
-        this.textContent = "🌙 Dark Mode";
-      }
-    });
-  </script>
+// --- Rejestracja
+document.getElementById("registerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("regEmail").value;
+  const password = document.getElementById("regPassword").value;
+
+  const res = await fetch("/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+});
+
+// --- Pobieranie zadań
+async function fetchTasks() {
+  const res = await fetch('/api/tasks', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  });
+  return res.json();
+}
+
+async function refreshTasks() {
+  const tasks = await fetchTasks();
+  const output = document.getElementById('tasks-output');
+  output.innerHTML = '';
+  const list = document.createElement('ul');
+  tasks.forEach(t => {
+    const li = document.createElement('li');
+    li.innerHTML = `<strong>📝 ${t.task}</strong><br>📌 ${t.status}<br>⏰ ${t.deadline}`;
+    list.appendChild(li);
+  });
+  output.appendChild(list);
+}
+
+// --- Dodawanie zadania
+async function saveTask() {
+  const task = document.getElementById("task").value;
+  const status = document.getElementById("status").value;
+  const deadline = document.getElementById("deadline").value;
+
+  const res = await fetch('/api/tasks', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
+    body: JSON.stringify({ task, status, deadline })
+  });
+
+  const data = await res.json();
+  document.getElementById("result").textContent = data.message;
+  refreshTasks();
+}
+async function refreshTasks() {
+  const tasks = await fetchTasks();
+  const output = document.getElementById('tasks-output');
+  output.innerHTML = '';
+  const list = document.createElement('ul');
+  tasks.forEach(t => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <strong>📝 ${t.task}</strong><br>
+      📌 ${t.status}<br>
+      ⏰ ${t.deadline}<br>
+      <button onclick="editTask(${t.id})">✏️ Edit</button>
+      <button onclick="deleteTask(${t.id})">🗑️ Delete</button>
+    `;
+    list.appendChild(li);
+  });
+  output.appendChild(list);
+}
+// --- Dodawanie zadania
+async function saveTask() {
+  const task = document.getElementById("task").value;
+  const status = document.getElementById("status").value;
+  const deadline = document.getElementById("deadline").value;
+
+  const res = await fetch('/api/tasks', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
+    body: JSON.stringify({ task, status, deadline })
+  });
+
+  const data = await res.json();
+  document.getElementById("result").textContent = data.message;
+
+  // --- czyścimy pola po dodaniu
+  document.getElementById("task").value = "";
+  document.getElementById("status").value = "";
+  document.getElementById("deadline").value = "";
+
+  refreshTasks();
+}
+
+// --- Usuwanie zadania
+async function deleteTask(id) {
+  const res = await fetch(`/api/tasks/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': 'Bearer ' + token }
+  });
+  const data = await res.json();
+  alert(data.message);
+  refreshTasks();
+}
+
+// --- Edycja zadania
+async function editTask(id) {
+  const newTask = prompt("Nowa treść zadania:");
+  const newStatus = prompt("Nowy status:");
+  const newDeadline = prompt("Nowy deadline:");
+
+  if (!newTask || !newStatus || !newDeadline) return;
+
+  const res = await fetch(`/api/tasks/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
+    body: JSON.stringify({ task: newTask, status: newStatus, deadline: newDeadline })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+  refreshTasks();
+}
+
+
+// --- Dark Mode toggle
+document.getElementById("dark-mode-toggle").addEventListener("click", function() {
+  document.body.classList.toggle("dark-mode");
+  this.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light Mode" : "🌙 Dark Mode";
+});
+
+document.getElementById("logout-btn").addEventListener("click", () => {
+  token = null;
+  document.getElementById("app").style.display = "none";
+  document.getElementById("loginForm").style.display = "block";
+  document.getElementById("registerForm").style.display = "block";
+  document.getElementById("logout-btn").style.display = "none";
+
+  // --- czyścimy formularze przy wylogowaniu
+  document.getElementById("email").value = "";
+  document.getElementById("password").value = "";
+  document.getElementById("regEmail").value = "";
+  document.getElementById("regPassword").value = "";
+});
+
+// --- Log out
+document.getElementById("logout-btn").addEventListener("click", () => {
+  token = null;
+  document.getElementById("app").style.display = "none";
+  document.getElementById("loginForm").style.display = "block";
+  document.getElementById("registerForm").style.display = "block";
+  document.getElementById("logout-btn").style.display = "none";
+});
+</script>
 </body>
 </html>

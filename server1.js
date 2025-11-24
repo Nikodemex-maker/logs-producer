@@ -7,106 +7,24 @@ const cron = require('node-cron');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 const SECRET = 'super_secret_key';
 
-// Add route to serve log.html
+app.use(express.json());
+app.use(express.static('public'));
+app.use(express.static(__dirname));
+
+// Serve frontend
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "log.html"));
 });
 
-app.use(express.json());
-app.use(express.static('public'));
-app.use(express.static(__dirname));
-app.use(express.static(path.join(__dirname)));
-
-// Create task
-app.get('/api/tasks', (req, res) => {
-  connection.query('SELECT * FROM tasks', (err, results) => {
-    if (err) {
-      logError('Error fetching tasks: ' + err.message, req);
-      return res.status(500).json({ message: 'Database error' });
-    }
-    res.json(results);
-  });
-});
-
-// Read Task
-app.post('/api/tasks', (req, res) => {
-  const { task, status, deadline } = req.body;
-  if (!task || !status || !deadline) {
-    logError('Missing task data', req);
-    return res.status(400).json({ message: 'Missing task data' });
-  }
-  const sql = 'INSERT INTO tasks (task, status, deadline) VALUES (?, ?, ?)';
-  connection.query(sql, [task, status, deadline], (err) => {
-    if (err) {
-      logError('Error saving task: ' + err.message, req);
-      return res.status(500).json({ message: 'Database error' });
-    }
-    res.json({ message: 'Task saved successfully' });
-  });
-});
-
-// Delete Task
-app.delete('/api/tasks/:id', (req, res) => {
-  const { id } = req.params;
-  const sql = 'DELETE FROM tasks WHERE id = ?';
-  connection.query(sql, [id], (err, result) => {
-    if (err) {
-      logError('Error deleting task: ' + err.message, req);
-      return res.status(500).json({ message: 'Database error' });
-    }
-    if (result.affectedRows === 0) {
-      logError(`Task not found for id=${id}`, req);
-      return res.status(404).json({ message: 'Task not found' });
-    }
-    res.json({ message: 'Task deleted successfully' });
-  });
-});
-// Update Task
-app.put('/api/tasks/:id', (req, res) => {
-  const { id } = req.params;
-  const { task, status, deadline } = req.body;
-
-  if (!task || !status || !deadline) {
-    logError('Missing task data for update', req);
-    return res.status(400).json({ message: 'Missing task data' });
-  }
-
-  const sql = 'UPDATE tasks SET task = ?, status = ?, deadline = ? WHERE id = ?';
-  connection.query(sql, [task, status, deadline, id], (err, result) => {
-    if (err) {
-      logError('Error updating task: ' + err.message, req);
-      return res.status(500).json({ message: 'Database error' });
-    }
-    if (result.affectedRows === 0) {
-      logError(`Task not found for update id=${id}`, req);
-      return res.status(404).json({ message: 'Task not found' });
-    }
-    res.json({ message: 'Task updated successfully' });
-  });
-});
-
-
-// --- Reset form
-function resetForm() {
-  document.querySelector("#task").value = "";
-  document.querySelector("#status").value = "";
-  document.querySelector("#deadline").value = "";
-  editingTaskId = null;
-  document.querySelector("#save-btn").style.display = "inline-block";
-  document.querySelector("#update-btn").style.display = "none";
-}
-
-
-// Połączenie z MySQL
+// --- MySQL connection
 const connection = mysql.createConnection({
-  host: process.env.DB_HOST, //wykorzystanie .env
+  host: process.env.DB_HOST,
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD, 
+  password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME
 });
 
@@ -115,127 +33,179 @@ connection.connect(err => {
     console.error('MySQL connection error:', err);
     process.exit(1);
   }
-  console.log('Connected to MySQL!');
+  console.log('✅ Connected to MySQL!');
 });
 
-// Helper – zapis błędów backendowych
-function logError(message, req, source = 'BACKEND') {
-  const sql = 'INSERT INTO logs (level, source, message, user_ip, user_agent) VALUES (?, ?, ?, ?, ?)';
-  connection.query(sql, [
-    'ERROR',
-    source,
-    String(message),
-    req?.ip || null,
-    req?.headers?.['user-agent'] || null
-  ], (err) => {
-    if (err) {
-      console.error('Failed to save error log:', err.message);
-    }
+// --- JWT middleware
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'No token provided' });
+
+  jwt.verify(token, SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: 'Invalid token' });
+    req.user = user;
+    next();
   });
 }
 
-// --- Konfiguracja maila
+// --- Register
+app.post('/register', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
+
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    connection.query(
+      'INSERT INTO users (email, password_hash) VALUES (?, ?)',
+      [email, hash],
+      (err) => {
+        if (err) {
+          if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ message: 'Email already exists' });
+          return res.status(500).json({ message: 'Database error' });
+        }
+        res.json({ message: 'User registered successfully' });
+      }
+    );
+  } catch {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// --- Login
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  connection.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Database error' });
+    if (results.length === 0) return res.status(401).json({ message: 'Invalid email or password' });
+
+    const user = results[0];
+    bcrypt.compare(password, user.password_hash, (err, isMatch) => {
+      if (err || !isMatch) return res.status(401).json({ message: 'Invalid email or password' });
+
+      const token = jwt.sign({ email: user.email, id: user.id }, SECRET, { expiresIn: '1h' });
+      res.json({ token });
+    });
+  });
+});
+
+// --- Tasks CRUD (protected)
+app.get('/api/tasks', authenticateToken, (req, res) => {
+  connection.query('SELECT * FROM tasks', (err, results) => {
+    if (err) return res.status(500).json({ message: 'Database error' });
+    res.json(results);
+  });
+});
+
+app.post('/api/tasks', authenticateToken, (req, res) => {
+  const { task, status, deadline } = req.body;
+  if (!task || !status || !deadline) return res.status(400).json({ message: 'Missing task data' });
+
+  connection.query(
+    'INSERT INTO tasks (task, status, deadline) VALUES (?, ?, ?)',
+    [task, status, deadline],
+    (err) => {
+      if (err) return res.status(500).json({ message: 'Database error' });
+      res.json({ message: 'Task saved successfully' });
+    }
+  );
+});
+
+app.put('/api/tasks/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const { task, status, deadline } = req.body;
+  if (!task || !status || !deadline) return res.status(400).json({ message: 'Missing task data' });
+
+  connection.query(
+    'UPDATE tasks SET task=?, status=?, deadline=? WHERE id=?',
+    [task, status, deadline, id],
+    (err, result) => {
+      if (err) return res.status(500).json({ message: 'Database error' });
+      if (result.affectedRows === 0) return res.status(404).json({ message: 'Task not found' });
+      res.json({ message: 'Task updated successfully' });
+    }
+  );
+});
+
+app.delete('/api/tasks/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  connection.query('DELETE FROM tasks WHERE id=?', [id], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Database error' });
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Task not found' });
+    res.json({ message: 'Task deleted successfully' });
+  });
+});
+
+// --- Nodemailer config
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS // ← tutaj wklej App Password z Gmaila
+    pass: process.env.MAIL_PASS
   }
 });
 
-// --- CRON: co 5 godzin liczenie statystyk i wysyłka
-cron.schedule('*/5 * * * *', () => {
-  console.log('⏰ CRON: liczenie statystyk błędów...');
-
+// --- CRON: co 5 minut statystyki błędów
+cron.schedule('0 */5 * * *', () => {
+  console.log('⏰ CRON: counting error stats...');
   const queries = {
     last30m: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND timestamp >= NOW() - INTERVAL 30 MINUTE",
     last1h: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND timestamp >= NOW() - INTERVAL 1 HOUR",
-    last2h: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND timestamp >= NOW() - INTERVAL 2 HOUR",
-    last6h: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND timestamp >= NOW() - INTERVAL 6 HOUR",
-    today: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND DATE(timestamp) = CURDATE()",
-    yesterday: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND DATE(timestamp) = CURDATE() - INTERVAL 1 DAY",
-    thisWeek: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND YEARWEEK(timestamp, 1) = YEARWEEK(CURDATE(), 1)",
-    lastWeek: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND YEARWEEK(timestamp, 1) = YEARWEEK(CURDATE() - INTERVAL 1 WEEK, 1)"
+    today: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND DATE(timestamp) = CURDATE()"
   };
-
-  const keys = Object.keys(queries);
   const stats = {};
   let completed = 0;
+  const keys = Object.keys(queries);
 
   keys.forEach(key => {
     connection.query(queries[key], (err, rows) => {
-      stats[key] = err ? 'Błąd' : rows[0].count;
+      stats[key] = err ? 'Error' : rows[0].count;
       completed++;
-
       if (completed === keys.length) {
-        // --- Wyświetlenie w konsoli
-        console.log("📊 Statystyki błędów:");
-        console.log(stats);
-
-        // --- Treść maila
-        const statsText = Object.entries(stats)
-          .map(([label, count]) => `${label}: ${count}`)
-          .join('\n');
-
+        const statsText = Object.entries(stats).map(([label, count]) => `${label}: ${count}`).join('\n');
         const mailOptions = {
           from: process.env.MAIL_USER,
           to: process.env.MAIL_TO,
-          subject: '📊 Statystyki błędów z systemu',
+          subject: '📊 Error statistics',
           text: statsText
         };
-
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.error('❌ Błąd przy wysyłce maila:', error);
-          } else {
-            console.log('✅ Statystyki wysłane na maila:');
-          }
+        transporter.sendMail(mailOptions, (error) => {
+          if (error) console.error('❌ Mail error:', error);
+          else console.log('✅ Stats mail sent');
         });
       }
     });
   });
 });
 
-// --- CRON: codziennie o 8:00 wysyłka zadań do zrobienia
+// --- CRON: codziennie o 8:00 wysyłka zadań
 cron.schedule('0 8 * * 1-5', () => {
-  console.log('⏰ CRON: wysyłka zadań do zrobienia...');
-
+  console.log('⏰ CRON: sending tasks...');
   const sql = "SELECT task, status, deadline FROM tasks";
-
   connection.query(sql, (err, rows) => {
     if (err) {
-      console.error('❌ Błąd przy pobieraniu zadań:', err.message);
+      console.error('❌ Error fetching tasks:', err.message);
       return;
     }
-
     if (rows.length === 0) {
-      console.log('Brak zadań do wysłania.');
+      console.log('No tasks to send.');
       return;
     }
-
-    // --- Treść maila
-    const tasksText = rows.map(row => {
-      return `📝 ${row.task} | 📌 ${row.status} | ⏰ ${row.deadline}`;
-    }).join('\n');
-
+    const tasksText = rows.map(row => `📝 ${row.task} | 📌 ${row.status} | ⏰ ${row.deadline}`).join('\n');
     const mailOptions = {
       from: process.env.MAIL_USER,
       to: process.env.MAIL_TO,
-      subject: '📋 Zadania do zrobienia',
+      subject: '📋 Tasks to do',
       text: tasksText
     };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('❌ Błąd przy wysyłce maila:', error);
-      } else {
-        console.log('✅ Zadania wysłane na maila!');
-      }
+    transporter.sendMail(mailOptions, (error) => {
+      if (error) console.error('❌ Mail error:', error);
+      else console.log('✅ Tasks mail sent!');
     });
   });
 });
 
-// --- Start serwera
-app.listen(3000, '0.0.0.0', () => {
-  console.log("Server is running on port 3000");
+// --- Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
