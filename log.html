@@ -4,152 +4,55 @@
   <meta charset="UTF-8">
   <title>Task Manager</title>
   <style>
-    body { 
-      margin: 0; 
-      font-family: Arial, sans-serif; 
-      text-align: center; 
-      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-      min-height: 100vh;
-      color: #fff;
-    }
+    body { margin: 0; font-family: Arial, sans-serif; text-align: center; 
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); min-height: 100vh; color: #fff; }
 
-    header { 
-      background: transparent; 
-      padding: 20px; 
-      position: relative;
-    }
+    header { background: transparent; padding: 20px; position: relative; }
 
-    h1 { 
-      margin-top: 40px; 
-      font-weight: bold; 
-      font-size: 36px;
-      text-shadow: 0 0 10px #fff, 0 0 20px #000;
-    }
+    h1 { margin-top: 40px; font-weight: bold; font-size: 36px; text-shadow: 0 0 10px #fff, 0 0 20px #000; }
 
-    p { 
-      font-size: 18px;
-      margin-bottom: 30px;
-    }
+    p { font-size: 18px; margin-bottom: 30px; }
 
     form, #form-section {
-      margin: 20px auto;
-      max-width: 400px;
-      background: rgba(255,255,255,0.1);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      backdrop-filter: blur(8px);
-    }
+      margin: 20px auto; max-width: 400px; background: rgba(255,255,255,0.1); padding: 20px;
+      border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); backdrop-filter: blur(8px); }
 
-    input { 
-      width: 90%;
-      margin: 8px 0; 
-      padding: 10px; 
-      border-radius: 5px; 
-      border: none;
-      outline: none;
-    }
+    input { width: 90%; margin: 8px 0; padding: 10px; border-radius: 5px; border: none; outline: none; }
 
-    button { 
-      margin-top: 10px; 
-      padding: 10px 20px; 
-      border: none; 
-      background-color: #fff; 
-      color: #2575fc;
-      font-weight: bold;
-      border-radius: 5px; 
-      cursor: pointer; 
-      transition: 0.3s;
-    }
+    button { margin-top: 10px; padding: 10px 20px; border: none; background-color: #fff; 
+      color: #2575fc; font-weight: bold; border-radius: 5px; cursor: pointer; transition: 0.3s; }
 
-    button:hover {
-      background-color: #2575fc;
-      color: #fff;
-    }
+    button:hover { background-color: #2575fc; color: #fff; }
 
-    ul { 
-      list-style-type: none; 
-      padding: 0; 
-      text-align: left; 
-      max-width: 600px; 
-      margin: 20px auto; 
-    }
+    ul { list-style-type: none; padding: 0; text-align: left; max-width: 600px; margin: 20px auto; }
 
-    li { 
-      margin-bottom: 15px; 
-      background: rgba(255,255,255,0.15);
-      padding: 12px; 
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2); 
-    }
+    li { margin-bottom: 15px; background: rgba(255,255,255,0.15);
+      padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
 
-    #dark-mode-toggle, #logout-btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 5px;
-      background-color: #fff;
-      color: #2575fc;
-      cursor: pointer;
-      font-weight: bold;
-    }
+    #dark-mode-toggle, #logout-btn { padding: 8px 16px; border: none; border-radius: 5px; 
+      background-color: #fff; color: #2575fc; cursor: pointer; font-weight: bold; }
 
-    #dark-mode-toggle {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
+    #dark-mode-toggle { position: absolute; top: 20px; right: 20px; }
 
-    #logout-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      display: none; /* ukryty dopóki nie zalogowany */
-    }
+    #logout-btn { position: absolute; top: 20px; left: 20px;display: none;}
 
-    body.dark-mode {
-      background: linear-gradient(135deg, #000000 0%, #434343 100%);
-      color: #e0e0e0;
-    }
+    body.dark-mode { background: linear-gradient(135deg, #000000 0%, #434343 100%); color: #e0e0e0; }
 
-    body.dark-mode form, body.dark-mode #form-section, body.dark-mode li {
-      background: rgba(0,0,0,0.4);
-      color: #fff;
-    }
+    body.dark-mode form, body.dark-mode #form-section, body.dark-mode li { background: rgba(0,0,0,0.4); 
+      color: #fff; }
 
-    body.dark-mode button {
-      background-color: #2575fc;
-      color: #fff;
-    }
-    #app-container {
-      display: flex;
-      justify-content: space-around;
-      align-items: flex-start;
-      margin-top: 30px;
-    }
+    body.dark-mode button { background-color: #2575fc; color: #fff; }
 
-    #form-section {
-      flex: 1;
-      max-width: 350px;
-    }
+    #app-container { display: flex; justify-content: space-around; align-items: flex-start; margin-top: 30px; }
 
-    #tasks-output {
-      flex: 1;
-      max-width: 400px;
-      text-align: left;
-    }
+    #form-section { flex: 1; max-width: 350px; }
 
-    #tasks-output ul {
-      list-style-type: none;
-      padding: 0;
-    }
+    #tasks-output { flex: 1; max-width: 400px; text-align: left; }
 
-    #tasks-output li {
-      margin-bottom: 15px;
-      background: rgba(255,255,255,0.15);
-      padding: 12px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
+    #tasks-output ul { list-style-type: none; padding: 0;}
+
+    #tasks-output li { margin-bottom: 15px; background: rgba(255,255,255,0.15); padding: 12px; 
+      border-radius: 8px;box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
 
   </style>
 </head>
@@ -335,13 +238,10 @@ async function deleteTask(id) {
   refreshTasks();
 }
 
-// --- Edycja zadania
-async function editTask(id) {
-  const newTask = prompt("Nowa treść zadania:");
-  const newStatus = prompt("Nowy status:");
-  const newDeadline = prompt("Nowy deadline:");
-
-  if (!newTask || !newStatus || !newDeadline) return;
+async function updateTask(id) {
+  const newTask = document.getElementById(`task-${id}`).value;
+  const newStatus = document.getElementById(`status-${id}`).value;
+  const newDeadline = document.getElementById(`deadline-${id}`).value;
 
   const res = await fetch(`/api/tasks/${id}`, {
     method: 'PUT',
@@ -353,10 +253,68 @@ async function editTask(id) {
   });
 
   const data = await res.json();
-  alert(data.message);
+  document.getElementById("result").textContent = data.message;
   refreshTasks();
 }
 
+function startEdit(id, task, status, deadline) {
+  document.getElementById(`view-${id}`).style.display = "none";
+  document.getElementById(`edit-${id}`).style.display = "block";
+}
+
+function cancelEdit(id) {
+  document.getElementById(`edit-${id}`).style.display = "none";
+  document.getElementById(`view-${id}`).style.display = "block";
+}
+
+async function saveEdit(id) {
+  const newTask = document.getElementById(`edit-task-${id}`).value;
+  const newStatus = document.getElementById(`edit-status-${id}`).value;
+  const newDeadline = document.getElementById(`edit-deadline-${id}`).value;
+
+  const res = await fetch(`/api/tasks/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
+    body: JSON.stringify({ task: newTask, status: newStatus, deadline: newDeadline })
+  });
+
+  const data = await res.json();
+  document.getElementById("result").textContent = data.message;
+  refreshTasks();
+}
+
+async function refreshTasks() {
+  const tasks = await fetchTasks();
+  const output = document.getElementById('tasks-output');
+  output.innerHTML = '';
+  const list = document.createElement('ul');
+
+  tasks.forEach(t => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <div id="view-${t.id}">
+        <strong>📝 ${t.task}</strong><br>
+        📌 ${t.status}<br>
+        ⏰ ${t.deadline}<br>
+        <button onclick="startEdit(${t.id}, '${t.task}', '${t.status}', '${t.deadline}')">✏️ Edit</button>
+        <button onclick="deleteTask(${t.id})">🗑️ Delete</button>
+      </div>
+      <div id="edit-${t.id}" style="display:none;">
+        <input type="text" id="edit-task-${t.id}" value="${t.task}" />
+        <input type="text" id="edit-status-${t.id}" value="${t.status}" />
+        <input type="text" id="edit-deadline-${t.id}" value="${t.deadline}" />
+        <button onclick="saveEdit(${t.id})">💾 Save</button>
+        <button onclick="cancelEdit(${t.id})">❌ Cancel</button>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+
+  output.appendChild(list);
+}
 
 // --- Dark Mode toggle
 document.getElementById("dark-mode-toggle").addEventListener("click", function() {

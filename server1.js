@@ -50,27 +50,23 @@ function authenticateToken(req, res, next) {
 }
 
 // --- Register
-app.post('/register', async (req, res) => {
+app.post('/register', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
 
-  try {
-    const hash = await bcrypt.hash(password, 10);
-    connection.query(
-      'INSERT INTO users (email, password_hash) VALUES (?, ?)',
-      [email, hash],
-      (err) => {
-        if (err) {
-          if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ message: 'Email already exists' });
-          return res.status(500).json({ message: 'Database error' });
-        }
-        res.json({ message: 'User registered successfully' });
+  connection.query(
+    'INSERT INTO users (email, password_hash) VALUES (?, ?)',
+    [email, password], // <-- zapisujemy hasło wprost
+    (err) => {
+      if (err) {
+        if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ message: 'Email already exists' });
+        return res.status(500).json({ message: 'Database error' });
       }
-    );
-  } catch {
-    res.status(500).json({ message: 'Server error' });
-  }
+      res.json({ message: 'User registered successfully' });
+    }
+  );
 });
+
 
 // --- Login
 app.post('/login', (req, res) => {
@@ -80,14 +76,15 @@ app.post('/login', (req, res) => {
     if (results.length === 0) return res.status(401).json({ message: 'Invalid email or password' });
 
     const user = results[0];
-    bcrypt.compare(password, user.password_hash, (err, isMatch) => {
-      if (err || !isMatch) return res.status(401).json({ message: 'Invalid email or password' });
+    if (password !== user.password_hash) { // <-- zwykłe porównanie
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
 
-      const token = jwt.sign({ email: user.email, id: user.id }, SECRET, { expiresIn: '1h' });
-      res.json({ token });
-    });
+    const token = jwt.sign({ email: user.email, id: user.id }, SECRET, { expiresIn: '1h' });
+    res.json({ token });
   });
 });
+
 
 // --- Tasks CRUD (protected)
 app.get('/api/tasks', authenticateToken, (req, res) => {
@@ -151,7 +148,12 @@ cron.schedule('0 */5 * * *', () => {
   const queries = {
     last30m: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND timestamp >= NOW() - INTERVAL 30 MINUTE",
     last1h: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND timestamp >= NOW() - INTERVAL 1 HOUR",
-    today: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND DATE(timestamp) = CURDATE()"
+    last2h: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND timestamp >= NOW() - INTERVAL 2 HOUR",
+    last6h: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND timestamp >= NOW() - INTERVAL 6 HOUR",
+    today: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND DATE(timestamp) = CURDATE()",
+    yesterday: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND DATE(timestamp) = CURDATE() - INTERVAL 1 DAY",
+    thisWeek: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND YEARWEEK(timestamp, 1) = YEARWEEK(CURDATE(), 1)",
+    lastWeek: "SELECT COUNT(*) AS count FROM logs WHERE level='ERROR' AND YEARWEEK(timestamp, 1) = YEARWEEK(CURDATE() - INTERVAL 1 WEEK, 1)"
   };
   const stats = {};
   let completed = 0;
