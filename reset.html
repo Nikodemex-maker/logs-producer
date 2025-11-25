@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zmień hasło</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <body>
+  <h3>🔑 Resetuj hasło</h3>
+  <input type="password" id="newPassword" placeholder="Nowe hasło" required>
+  <button onclick="resetPassword()">Zmień hasło</button>
+
+  <div id="message-box"></div>
+
+  <script>
+    async function resetPassword() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const newPassword = document.getElementById("newPassword").value;
+
+      const res = await fetch("/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, newPassword })
+      });
+
+      const data = await res.json();
+
+      const box = document.getElementById("message-box");
+      box.innerHTML = `<p class="success">${data.message}</p>`;
+    }
+  </script>
+</body>
+
+
+</body>
+</html>

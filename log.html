@@ -61,45 +61,62 @@
     <button id="logout-btn">🚪 Log out</button>
     <button id="dark-mode-toggle">🌙 Dark Mode</button>
   </header>
-
   <main>
-    <h1>Task Manager</h1>
-    <p>Zarządzaj swoimi zadaniami w prosty sposób!</p>
+  <h1 data-key="title">Menedżer zadań</h1>
+  <p data-key="desc">Zarządzaj swoimi zadaniami w prosty sposób!</p>
 
-    <!-- Formularze -->
-    <form id="loginForm">
-      <h3>🔑 Logowanie</h3>
-      <input type="email" id="email" placeholder="Email" required>
-      <input type="password" id="password" placeholder="Hasło" required>
-      <button type="submit">Zaloguj</button>
-    </form>
+  <form id="loginForm">
+    <h3 data-key="loginTitle">🔑 Logowanie</h3>
+    <input id="email" placeholder="Email" data-key="emailPlaceholder">
+    <input id="password" type="password" placeholder="Hasło" data-key="passwordPlaceholder">
+    <button type="submit" data-key="loginBtn">Zaloguj</button>
+  </form>
 
-    <form id="registerForm">
-      <h3>📝 Rejestracja</h3>
-      <input type="email" id="regEmail" placeholder="Email" required>
-      <input type="password" id="regPassword" placeholder="Hasło" required>
-      <button type="submit">Zarejestruj</button>
-    </form>
-    <!-- Sekcja zadań -->
-    <div id="app" style="display:none;">
-      <div id="app-container">
-        <!-- Lewa kolumna: formularz -->
-        <div id="form-section">
-          <h3>📋 Dodaj zadanie</h3>
-          <input id="task" placeholder="Task">
-          <input id="status" placeholder="Status">
-          <input id="deadline" placeholder="Deadline">
-          <button onclick="saveTask()">Dodaj</button>
-          <div id="result"></div>
-        </div>
+  <form id="registerForm">
+    <h3 data-key="registerTitle">📝 Rejestracja</h3>
+    <input id="regEmail" placeholder="Email" data-key="emailPlaceholder">
+    <input id="regPassword" type="password" placeholder="Hasło" data-key="passwordPlaceholder">
+    <button type="submit" data-key="registerBtn">Zarejestruj</button>
+  </form>
 
+  <form id="forgotForm">
+    <h3 data-key="forgotTitle">❓ Zapomniałeś hasła?</h3>
+    <input id="forgotEmail" placeholder="Podaj swój email" data-key="forgotPlaceholder">
+    <button type="submit" data-key="forgotBtn">Wyślij link resetujący</button>
+  </form>
+
+  <div id="app" style="display:none;">
+    <div id="app-container">
+      <div id="form-section">
+        <h3 data-key="addTaskTitle">📋 Dodaj zadanie</h3>
+        <input id="task" placeholder="Task" data-key="taskPlaceholder">
+        <input id="status" placeholder="Status" data-key="statusPlaceholder">
+        <input id="deadline" placeholder="Deadline" data-key="deadlinePlaceholder">
+        <button onclick="saveTask()" data-key="addTaskBtn">Dodaj</button>
+        <div id="result"></div>
+      </div>
+      <div id="tasks-output"></div>
+    </div>
+  </div>
+
+  <div class="language-switcher">
+    <button id="language-btn">🌐 Language: Polish</button>
+    <div id="language-menu" style="display:none;">
+      <button data-lang="pl">Polski</button>
+      <button data-lang="en">English</button>
+      <button data-lang="es">Español</button>
+    </div>
+  </div>
+</main>
         <!-- Prawa kolumna: lista tasków -->
         <div id="tasks-output"></div>
       </div>
     </div>
-  </main>
+</main>
 
 <script>
+
+
 let token = null;
 
 // --- Logowanie
@@ -119,11 +136,14 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     token = data.token;
     document.getElementById("loginForm").style.display = "none";
     document.getElementById("registerForm").style.display = "none";
+    document.getElementById("forgotForm").style.display = "none"; 
     document.getElementById("app").style.display = "block";
     document.getElementById("logout-btn").style.display = "inline-block";
     refreshTasks();
   } else {
-    alert(data.message || "❌ Logowanie nieudane");
+    document.getElementById("result").innerHTML = `<p class="success">✅ Zalogowano poprawnie</p>`;
+    document.getElementById("result").innerHTML = `<p class="error">❌ Logowanie nieudane</p>`;
+
   }
 });
 
@@ -143,6 +163,20 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
   alert(data.message);
 });
 
+// --- Reset Password
+document.getElementById("forgotForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("forgotEmail").value;
+
+  const res = await fetch("/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+});
 // --- Pobieranie zadań
 async function fetchTasks() {
   const res = await fetch('/api/tasks', {
@@ -163,6 +197,12 @@ async function refreshTasks() {
   });
   output.appendChild(list);
 }
+
+// pokaż/ukryj menu
+document.getElementById("lang-btn").addEventListener("click", () => {
+  document.getElementById("lang-menu").style.display =
+    document.getElementById("lang-menu").style.display === "block" ? "none" : "block";
+});
 
 // --- Dodawanie zadania
 async function saveTask() {
@@ -343,6 +383,92 @@ document.getElementById("logout-btn").addEventListener("click", () => {
   document.getElementById("loginForm").style.display = "block";
   document.getElementById("registerForm").style.display = "block";
   document.getElementById("logout-btn").style.display = "none";
+});
+const translations = {
+  pl: {
+    title: "Menedżer zadań",
+    desc: "Zarządzaj swoimi zadaniami w prosty sposób!",
+    loginTitle: "🔑 Logowanie",
+    emailPlaceholder: "Email",
+    passwordPlaceholder: "Hasło",
+    loginBtn: "Zaloguj",
+    registerTitle: "📝 Rejestracja",
+    registerBtn: "Zarejestruj",
+    forgotTitle: "❓ Zapomniałeś hasła?",
+    forgotPlaceholder: "Podaj swój email",
+    forgotBtn: "Wyślij link resetujący",
+    addTaskTitle: "📋 Dodaj zadanie",
+    taskPlaceholder: "Zadanie",
+    statusPlaceholder: "Status",
+    deadlinePlaceholder: "Termin",
+    addTaskBtn: "Dodaj"
+  },
+  en: {
+    title: "Task Manager",
+    desc: "Manage your tasks easily!",
+    loginTitle: "🔑 Login",
+    emailPlaceholder: "Email",
+    passwordPlaceholder: "Password",
+    loginBtn: "Log in",
+    registerTitle: "📝 Register",
+    registerBtn: "Sign up",
+    forgotTitle: "❓ Forgot your password?",
+    forgotPlaceholder: "Enter your email",
+    forgotBtn: "Send reset link",
+    addTaskTitle: "📋 Add task",
+    taskPlaceholder: "Task",
+    statusPlaceholder: "Status",
+    deadlinePlaceholder: "Deadline",
+    addTaskBtn: "Add"
+  },
+  es: {
+    title: "Gestor de tareas",
+    desc: "¡Administra tus tareas fácilmente!",
+    loginTitle: "🔑 Iniciar sesión",
+    emailPlaceholder: "Correo electrónico",
+    passwordPlaceholder: "Contraseña",
+    loginBtn: "Entrar",
+    registerTitle: "📝 Registro",
+    registerBtn: "Registrarse",
+    forgotTitle: "❓ ¿Olvidaste tu contraseña?",
+    forgotPlaceholder: "Introduce tu correo",
+    forgotBtn: "Enviar enlace",
+    addTaskTitle: "📋 Añadir tarea",
+    taskPlaceholder: "Tarea",
+    statusPlaceholder: "Estado",
+    deadlinePlaceholder: "Fecha límite",
+    addTaskBtn: "Añadir"
+  }
+};
+
+let currentLang = "pl";
+
+document.getElementById("language-btn").addEventListener("click", () => {
+  const menu = document.getElementById("language-menu");
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
+});
+
+function translatePage(lang) {
+  document.querySelectorAll("[data-key]").forEach(el => {
+    const key = el.getAttribute("data-key");
+    const translation = translations[lang][key];
+    if (!translation) return;
+    if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+      el.placeholder = translation;
+    } else {
+      el.textContent = translation;
+    }
+  });
+}
+
+document.querySelectorAll("#language-menu button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const lang = btn.dataset.lang;
+    currentLang = lang;
+    translatePage(lang);
+    document.getElementById("language-btn").textContent = `🌐 Language: ${btn.textContent}`;
+    document.getElementById("language-menu").style.display = "none";
+  });
 });
 </script>
 </body>

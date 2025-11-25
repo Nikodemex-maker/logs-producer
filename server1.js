@@ -85,6 +85,22 @@ app.post('/login', (req, res) => {
   });
 });
 
+// --- Refresh password
+app.post('/reset-password', (req, res) => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) return res.status(400).json({ message: 'Missing data' });
+
+  jwt.verify(token, SECRET, (err, decoded) => {
+    if (err) return res.status(403).json({ message: 'Invalid or expired token' });
+
+    const email = decoded.email;
+    connection.query('UPDATE users SET password_hash=? WHERE email=?', [newPassword, email], (err, result) => {
+      if (err) return res.status(500).json({ message: 'Database error' });
+      if (result.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
+      res.json({ message: 'Password updated successfully' });
+    });
+  });
+});
 
 // --- Tasks CRUD (protected)
 app.get('/api/tasks', authenticateToken, (req, res) => {
@@ -203,6 +219,30 @@ cron.schedule('0 8 * * 1-5', () => {
     transporter.sendMail(mailOptions, (error) => {
       if (error) console.error('❌ Mail error:', error);
       else console.log('✅ Tasks mail sent!');
+    });
+  });
+});
+
+app.post('/forgot-password', (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: 'Email required' });
+
+  connection.query('SELECT * FROM users WHERE email=?', [email], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Database error' });
+    if (results.length === 0) return res.status(404).json({ message: 'User not found' });
+
+    const token = jwt.sign({ email }, SECRET, { expiresIn: '15m' }); // ważny 15 minut
+    const resetLink = `http://localhost:${PORT}/reset-password?token=${token}`;
+    const mailOptions = {
+      from: process.env.MAIL_USER,
+      to: email,
+      subject: '🔑 Reset your password',
+      text: `Click here to reset your password: ${resetLink}`
+    };
+
+    transporter.sendMail(mailOptions, (error) => {
+      if (error) return res.status(500).json({ message: 'Mail error' });
+      res.json({ message: 'Reset link sent to email' });
     });
   });
 });
