@@ -247,6 +247,11 @@ app.post('/forgot-password', (req, res) => {
   });
 });
 
+//--- Reset password
+app.get('/reset-password', (req, res) => {
+  res.sendFile(path.join(__dirname, 'reset.html'));
+});
+
 // --- Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

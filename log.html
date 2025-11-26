@@ -58,8 +58,8 @@
 </head>
 <body>
   <header>
-    <button id="logout-btn">🚪 Log out</button>
-    <button id="dark-mode-toggle">🌙 Dark Mode</button>
+    <button id="logout-btn" data-key="logoutBtn">🚪 Log out</button>
+    <button id="dark-mode-toggle" data-key="darkModeBtn">🌙 Dark Mode</button>
   </header>
   <main>
   <h1 data-key="title">Menedżer zadań</h1>
@@ -99,14 +99,14 @@
     </div>
   </div>
 
-  <div class="language-switcher">
-    <button id="language-btn">🌐 Language: Polish</button>
-    <div id="language-menu" style="display:none;">
-      <button data-lang="pl">Polski</button>
-      <button data-lang="en">English</button>
-      <button data-lang="es">Español</button>
-    </div>
+  <div class="controls">
+  <button id="language-btn">🌐 Language</button>
+  <div id="language-menu" style="display:none;">
+    <button data-lang="pl">Polski</button>
+    <button data-lang="en">English</button>
+    <button data-lang="es">Español</button>
   </div>
+</div>
 </main>
         <!-- Prawa kolumna: lista tasków -->
         <div id="tasks-output"></div>
@@ -236,7 +236,7 @@ async function refreshTasks() {
       ⏰ ${t.deadline}<br>
       <button onclick="editTask(${t.id})">✏️ Edit</button>
       <button onclick="deleteTask(${t.id})">🗑️ Delete</button>
-    `;
+  `;
     list.appendChild(li);
   });
   output.appendChild(list);
@@ -354,101 +354,151 @@ async function refreshTasks() {
   });
 
   output.appendChild(list);
-}
+} 
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // --- TRANSLATIONS (tylko raz, pełne)
+  const translations = {
+    pl: {
+      title: "Menedżer zadań",
+      desc: "Zarządzaj swoimi zadaniami w prosty sposób!",
+      loginTitle: "🔑 Logowanie",
+      emailPlaceholder: "Email",
+      passwordPlaceholder: "Hasło",
+      loginBtn: "Zaloguj",
+      registerTitle: "📝 Rejestracja",
+      registerBtn: "Zarejestruj",
+      forgotTitle: "❓ Zapomniałeś hasła?",
+      forgotPlaceholder: "Podaj swój email",
+      forgotBtn: "Wyślij link resetujący",
+      addTaskTitle: "📋 Dodaj zadanie",
+      taskPlaceholder: "Zadanie",
+      statusPlaceholder: "Status",
+      deadlinePlaceholder: "Termin",
+      addTaskBtn: "Dodaj",
+      logoutBtn: "🚪 Wyloguj",
+      darkModeOn: "🌙 Tryb ciemny",
+      darkModeOff: "☀️ Tryb jasny",
+      saveBtn: "💾 Zapisz",
+      cancelBtn: "❌ Anuluj",
+      editBtn: "✏️ Edytuj",
+      deleteBtn: "🗑️ Usuń"
+    },
+    en: {
+      title: "Task Manager",
+      desc: "Manage your tasks easily!",
+      loginTitle: "🔑 Login",
+      emailPlaceholder: "Email",
+      passwordPlaceholder: "Password",
+      loginBtn: "Log in",
+      registerTitle: "📝 Register",
+      registerBtn: "Sign up",
+      forgotTitle: "❓ Forgot your password?",
+      forgotPlaceholder: "Enter your email",
+      forgotBtn: "Send reset link",
+      addTaskTitle: "📋 Add task",
+      taskPlaceholder: "Task",
+      statusPlaceholder: "Status",
+      deadlinePlaceholder: "Deadline",
+      addTaskBtn: "Add",
+      logoutBtn: "🚪 Log out",
+      darkModeOn: "🌙 Dark Mode",
+      darkModeOff: "☀️ Light Mode",
+      saveBtn: "💾 Save",
+      cancelBtn: "❌ Cancel",
+      editBtn: "✏️ Edit",
+      deleteBtn: "🗑️ Delete"
+    },
+    es: {
+      title: "Gestor de tareas",
+      desc: "¡Administra tus tareas fácilmente!",
+      loginTitle: "🔑 Iniciar sesión",
+      emailPlaceholder: "Correo electrónico",
+      passwordPlaceholder: "Contraseña",
+      loginBtn: "Entrar",
+      registerTitle: "📝 Registro",
+      registerBtn: "Registrarse",
+      forgotTitle: "❓ ¿Olvidaste tu contraseña?",
+      forgotPlaceholder: "Introduce tu correo",
+      forgotBtn: "Enviar enlace",
+      addTaskTitle: "📋 Añadir tarea",
+      taskPlaceholder: "Tarea",
+      statusPlaceholder: "Estado",
+      deadlinePlaceholder: "Fecha límite",
+      addTaskBtn: "Añadir",
+      logoutBtn: "🚪 Cerrar sesión",
+      darkModeOn: "🌙 Modo oscuro",
+      darkModeOff: "☀️ Modo claro",
+      saveBtn: "💾 Guardar",
+      cancelBtn: "❌ Cancelar",
+      editBtn: "✏️ Editar",
+      deleteBtn: "🗑️ Eliminar"
+    }
+  };
 
-// --- Dark Mode toggle
-document.getElementById("dark-mode-toggle").addEventListener("click", function() {
-  document.body.classList.toggle("dark-mode");
-  this.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light Mode" : "🌙 Dark Mode";
-});
+  // --- DOM refs (bez zgadywania nazw)
+  const languageBtn = document.getElementById('language-btn');
+  const languageMenu = document.getElementById('language-menu');
+  const darkModeToggle = document.getElementById('dark-mode-toggle');
+  const logoutBtn = document.getElementById('logout-btn');
 
-document.getElementById("logout-btn").addEventListener("click", () => {
-  token = null;
-  document.getElementById("app").style.display = "none";
-  document.getElementById("loginForm").style.display = "block";
-  document.getElementById("registerForm").style.display = "block";
-  document.getElementById("logout-btn").style.display = "none";
+  // --- LANGUAGE: stan i tłumaczenie
+  const savedLang = localStorage.getItem('lang') || 'pl';
 
-  // --- czyścimy formularze przy wylogowaniu
-  document.getElementById("email").value = "";
-  document.getElementById("password").value = "";
-  document.getElementById("regEmail").value = "";
-  document.getElementById("regPassword").value = "";
-});
-
-// --- Log out
-document.getElementById("logout-btn").addEventListener("click", () => {
-  token = null;
-  document.getElementById("app").style.display = "none";
-  document.getElementById("loginForm").style.display = "block";
-  document.getElementById("registerForm").style.display = "block";
-  document.getElementById("logout-btn").style.display = "none";
-});
-const translations = {
-  pl: {
-    title: "Menedżer zadań",
-    desc: "Zarządzaj swoimi zadaniami w prosty sposób!",
-    loginTitle: "🔑 Logowanie",
-    emailPlaceholder: "Email",
-    passwordPlaceholder: "Hasło",
-    loginBtn: "Zaloguj",
-    registerTitle: "📝 Rejestracja",
-    registerBtn: "Zarejestruj",
-    forgotTitle: "❓ Zapomniałeś hasła?",
-    forgotPlaceholder: "Podaj swój email",
-    forgotBtn: "Wyślij link resetujący",
-    addTaskTitle: "📋 Dodaj zadanie",
-    taskPlaceholder: "Zadanie",
-    statusPlaceholder: "Status",
-    deadlinePlaceholder: "Termin",
-    addTaskBtn: "Dodaj"
-  },
-  en: {
-    title: "Task Manager",
-    desc: "Manage your tasks easily!",
-    loginTitle: "🔑 Login",
-    emailPlaceholder: "Email",
-    passwordPlaceholder: "Password",
-    loginBtn: "Log in",
-    registerTitle: "📝 Register",
-    registerBtn: "Sign up",
-    forgotTitle: "❓ Forgot your password?",
-    forgotPlaceholder: "Enter your email",
-    forgotBtn: "Send reset link",
-    addTaskTitle: "📋 Add task",
-    taskPlaceholder: "Task",
-    statusPlaceholder: "Status",
-    deadlinePlaceholder: "Deadline",
-    addTaskBtn: "Add"
-  },
-  es: {
-    title: "Gestor de tareas",
-    desc: "¡Administra tus tareas fácilmente!",
-    loginTitle: "🔑 Iniciar sesión",
-    emailPlaceholder: "Correo electrónico",
-    passwordPlaceholder: "Contraseña",
-    loginBtn: "Entrar",
-    registerTitle: "📝 Registro",
-    registerBtn: "Registrarse",
-    forgotTitle: "❓ ¿Olvidaste tu contraseña?",
-    forgotPlaceholder: "Introduce tu correo",
-    forgotBtn: "Enviar enlace",
-    addTaskTitle: "📋 Añadir tarea",
-    taskPlaceholder: "Tarea",
-    statusPlaceholder: "Estado",
-    deadlinePlaceholder: "Fecha límite",
-    addTaskBtn: "Añadir"
+  function translatePage(lang) {
+    document.querySelectorAll('[data-key]').forEach(el => {
+      const key = el.getAttribute('data-key');
+      const translation = translations[lang] && translations[lang][key];
+      if (!translation) return;
+      const tag = el.tagName.toUpperCase();
+      if (tag === 'INPUT' || tag === 'TEXTAREA') {
+        el.placeholder = translation;
+      } else {
+        el.textContent = translation;
+      }
+    });
+    // Uaktualnij label przycisku języka
+    if (languageBtn) {
+      const label = lang === 'pl' ? 'Polish' : lang === 'en' ? 'English' : 'Español';
+      languageBtn.textContent = `🌐 Language: ${label}`;
+    }
+    localStorage.setItem('lang', lang);
   }
-};
 
+  // pokaż/ukryj menu językowe
+  if (languageBtn && languageMenu) {
+    languageBtn.addEventListener('click', () => {
+      languageMenu.style.display = languageMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    languageMenu.querySelectorAll('button[data-lang]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lang = btn.dataset.lang;
+        translatePage(lang);
+        languageMenu.style.display = 'none';
+      });
+    });
+  }
+// --- Dark mode/Light mode
 let currentLang = "pl";
 
-document.getElementById("language-btn").addEventListener("click", () => {
-  const menu = document.getElementById("language-menu");
-  menu.style.display = menu.style.display === "block" ? "none" : "block";
+function updateDarkModeButton() {
+  const btn = document.getElementById("dark-mode-toggle");
+  const isDark = document.body.classList.contains("dark-mode");
+  const key = isDark ? "darkModeOff" : "darkModeOn";
+  btn.setAttribute("data-key", key);
+  btn.textContent = translations[currentLang][key];
+}
+
+document.getElementById("dark-mode-toggle").addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+  updateDarkModeButton();
 });
 
+// Funkcja tłumacząca całą stronę
 function translatePage(lang) {
+  currentLang = lang;
   document.querySelectorAll("[data-key]").forEach(el => {
     const key = el.getAttribute("data-key");
     const translation = translations[lang][key];
@@ -459,16 +509,34 @@ function translatePage(lang) {
       el.textContent = translation;
     }
   });
+  updateDarkModeButton(); // odśwież tekst przycisku Dark Mode
 }
 
-document.querySelectorAll("#language-menu button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const lang = btn.dataset.lang;
-    currentLang = lang;
-    translatePage(lang);
-    document.getElementById("language-btn").textContent = `🌐 Language: ${btn.textContent}`;
-    document.getElementById("language-menu").style.display = "none";
-  });
+  // --- LOGOUT: jedna, bez duplikatów (działa, ale nie rusza logowania)
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      // Jeśli używasz globalnego tokena i/lub localStorage:
+      try { localStorage.removeItem('token'); } catch {}
+      // UI reset
+      const app = document.getElementById('app');
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+
+      if (app) app.style.display = 'none';
+      if (loginForm) loginForm.style.display = 'block';
+      if (registerForm) registerForm.style.display = 'block';
+      logoutBtn.style.display = 'none';
+
+      ['email','password','regEmail','regPassword'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+    });
+  }
+
+  // --- INIT: zastosuj zapisane ustawienia przy starcie
+  translatePage(savedLang);
+  applyDarkModeState(savedDark);
 });
 </script>
 </body>
