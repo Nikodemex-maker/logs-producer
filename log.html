@@ -58,8 +58,8 @@
 </head>
 <body>
   <header>
-    <button id="logout-btn" data-key="logoutBtn">🚪 Log out</button>
-    <button id="dark-mode-toggle" data-key="darkModeBtn">🌙 Dark Mode</button>
+    <button id="logout-btn" data-key="logoutBtn">🚪 Wyloguj się</button>
+    <button id="dark-mode-toggle" data-key="darkModeBtn">🌙 Tryb ciemny</button>
   </header>
   <main>
   <h1 data-key="title">Menedżer zadań</h1>
@@ -102,9 +102,9 @@
   <div class="controls">
   <button id="language-btn">🌐 Language</button>
   <div id="language-menu" style="display:none;">
-    <button data-lang="pl">Polski</button>
-    <button data-lang="en">English</button>
-    <button data-lang="es">Español</button>
+    <button data-lang="pl">🇵🇱 Polski</button>
+    <button data-lang="en">🇬🇧 English</button>
+    <button data-lang="es">🇪🇸 Español</button>
   </div>
 </div>
 </main>
@@ -115,8 +115,6 @@
 </main>
 
 <script>
-
-
 let token = null;
 
 // --- Logowanie
@@ -134,6 +132,8 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const data = await res.json();
   if (data.token) {
     token = data.token;
+    refreshTasks();
+    
     document.getElementById("loginForm").style.display = "none";
     document.getElementById("registerForm").style.display = "none";
     document.getElementById("forgotForm").style.display = "none"; 
@@ -160,7 +160,6 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
   });
 
   const data = await res.json();
-  alert(data.message);
 });
 
 // --- Reset Password
@@ -175,7 +174,6 @@ document.getElementById("forgotForm").addEventListener("submit", async (e) => {
   });
 
   const data = await res.json();
-  alert(data.message);
 });
 // --- Pobieranie zadań
 async function fetchTasks() {
@@ -223,11 +221,16 @@ async function saveTask() {
   document.getElementById("result").textContent = data.message;
   refreshTasks();
 }
-async function refreshTasks() {
-  const tasks = await fetchTasks();
+  async function refreshTasks() {
+  const res = await fetch('/api/tasks', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  });
+  const tasks = await res.json();
+
   const output = document.getElementById('tasks-output');
   output.innerHTML = '';
   const list = document.createElement('ul');
+  
   tasks.forEach(t => {
     const li = document.createElement('li');
     li.innerHTML = `
@@ -240,6 +243,7 @@ async function refreshTasks() {
     list.appendChild(li);
   });
   output.appendChild(list);
+
 }
 // --- Dodawanie zadania
 async function saveTask() {
@@ -274,7 +278,6 @@ async function deleteTask(id) {
     headers: { 'Authorization': 'Bearer ' + token }
   });
   const data = await res.json();
-  alert(data.message);
   refreshTasks();
 }
 
@@ -339,15 +342,15 @@ async function refreshTasks() {
         <strong>📝 ${t.task}</strong><br>
         📌 ${t.status}<br>
         ⏰ ${t.deadline}<br>
-        <button onclick="startEdit(${t.id}, '${t.task}', '${t.status}', '${t.deadline}')">✏️ Edit</button>
-        <button onclick="deleteTask(${t.id})">🗑️ Delete</button>
+        <button data-key="editBtn" onclick="startEdit(${t.id}, '${t.task}', '${t.status}', '${t.deadline}')">✏️ Edytuj</button>
+        <button data-key="deleteBtn" onclick="deleteTask(${t.id})">🗑️ Usuń</button>
       </div>
       <div id="edit-${t.id}" style="display:none;">
         <input type="text" id="edit-task-${t.id}" value="${t.task}" />
         <input type="text" id="edit-status-${t.id}" value="${t.status}" />
         <input type="text" id="edit-deadline-${t.id}" value="${t.deadline}" />
-        <button onclick="saveEdit(${t.id})">💾 Save</button>
-        <button onclick="cancelEdit(${t.id})">❌ Cancel</button>
+        <button data-key="saveBtn" onclick="saveEdit(${t.id})">💾 Zapisz</button>
+        <button data-key="cancelBtn" onclick="cancelEdit(${t.id})">❌ Anuluj</button>
       </div>
     `;
     list.appendChild(li);
@@ -355,6 +358,8 @@ async function refreshTasks() {
 
   output.appendChild(list);
 } 
+translatePage(currentLang);
+
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -495,6 +500,16 @@ document.getElementById("dark-mode-toggle").addEventListener("click", () => {
   document.body.classList.toggle("dark-mode");
   updateDarkModeButton();
 });
+function applyDarkModeState(state) {
+    if (state === "dark") {
+      document.body.classList.add("dark-mode");
+    } else {
+      document.body.classList.remove("dark-mode");
+    }
+    updateDarkModeButton();
+  }
+  
+
 
 // Funkcja tłumacząca całą stronę
 function translatePage(lang) {
@@ -536,6 +551,7 @@ function translatePage(lang) {
 
   // --- INIT: zastosuj zapisane ustawienia przy starcie
   translatePage(savedLang);
+  translatePage("pl");
   applyDarkModeState(savedDark);
 });
 </script>

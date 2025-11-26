@@ -67,7 +67,6 @@ app.post('/register', (req, res) => {
   );
 });
 
-
 // --- Login
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
@@ -104,7 +103,9 @@ app.post('/reset-password', (req, res) => {
 
 // --- Tasks CRUD (protected)
 app.get('/api/tasks', authenticateToken, (req, res) => {
-  connection.query('SELECT * FROM tasks', (err, results) => {
+  connection.query('SELECT * FROM tasks WHERE user_id=?', 
+    [req.user.id],
+    (err, results) => {
     if (err) return res.status(500).json({ message: 'Database error' });
     res.json(results);
   });
@@ -115,8 +116,8 @@ app.post('/api/tasks', authenticateToken, (req, res) => {
   if (!task || !status || !deadline) return res.status(400).json({ message: 'Missing task data' });
 
   connection.query(
-    'INSERT INTO tasks (task, status, deadline) VALUES (?, ?, ?)',
-    [task, status, deadline],
+    'INSERT INTO tasks (task, status, deadline, user_id) VALUES (?, ?, ?, ?)',
+    [task, status, deadline, req.user.id],
     (err) => {
       if (err) return res.status(500).json({ message: 'Database error' });
       res.json({ message: 'Task saved successfully' });
@@ -130,8 +131,8 @@ app.put('/api/tasks/:id', authenticateToken, (req, res) => {
   if (!task || !status || !deadline) return res.status(400).json({ message: 'Missing task data' });
 
   connection.query(
-    'UPDATE tasks SET task=?, status=?, deadline=? WHERE id=?',
-    [task, status, deadline, id],
+    'UPDATE tasks SET task=?, status=?, deadline=? WHERE id=? AND user_id=?',
+    [task, status, deadline, id, req.user.id],
     (err, result) => {
       if (err) return res.status(500).json({ message: 'Database error' });
       if (result.affectedRows === 0) return res.status(404).json({ message: 'Task not found' });
@@ -142,7 +143,8 @@ app.put('/api/tasks/:id', authenticateToken, (req, res) => {
 
 app.delete('/api/tasks/:id', authenticateToken, (req, res) => {
   const { id } = req.params;
-  connection.query('DELETE FROM tasks WHERE id=?', [id], (err, result) => {
+  connection.query(
+    'DELETE FROM tasks WHERE id=? AND user_id=?', [id, req.user.id], (err, result) => {
     if (err) return res.status(500).json({ message: 'Database error' });
     if (result.affectedRows === 0) return res.status(404).json({ message: 'Task not found' });
     res.json({ message: 'Task deleted successfully' });
@@ -231,7 +233,7 @@ app.post('/forgot-password', (req, res) => {
     if (err) return res.status(500).json({ message: 'Database error' });
     if (results.length === 0) return res.status(404).json({ message: 'User not found' });
 
-    const token = jwt.sign({ email }, SECRET, { expiresIn: '15m' }); // ważny 15 minut
+    const token = jwt.sign({ email }, SECRET, { expiresIn: '15min' });
     const resetLink = `http://localhost:${PORT}/reset-password?token=${token}`;
     const mailOptions = {
       from: process.env.MAIL_USER,
@@ -245,6 +247,11 @@ app.post('/forgot-password', (req, res) => {
       res.json({ message: 'Reset link sent to email' });
     });
   });
+});
+// --- Wylogowanie
+app.post('/logout', (req, res) => {
+  // W JWT nie ma sesji do kasowania, więc tylko frontend usuwa token
+  res.json({ message: 'Logged out' });
 });
 
 //--- Reset password
