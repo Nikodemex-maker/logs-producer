@@ -29,12 +29,11 @@
     li { margin-bottom: 15px; background: rgba(255,255,255,0.15);
       padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
 
-    #dark-mode-toggle, #logout-btn { padding: 8px 16px; border: none; border-radius: 5px; 
-      background-color: #fff; color: #2575fc; cursor: pointer; font-weight: bold; }
+    .task-header {
+      display: flex; flex-direction: column;   /* ustawia pionowo */ align-items: flex-start;  /* wyrównanie do lewej */
+      gap: 8px; position: absolute; top: 10px; left: 10px; /* lewy górny róg */ }
 
-    #dark-mode-toggle { position: absolute; top: 20px; right: 20px; }
-
-    #logout-btn { position: absolute; top: 20px; left: 20px;display: none;}
+    #languageSelect { margin-left: 0; /* dokładnie pod logoutem */ }
 
     body.dark-mode { background: linear-gradient(135deg, #000000 0%, #434343 100%); color: #e0e0e0; }
 
@@ -43,22 +42,40 @@
 
     body.dark-mode button { background-color: #2575fc; color: #fff; }
 
-    #app-container { display: flex; justify-content: space-around; align-items: flex-start; margin-top: 30px; }
-
     #form-section { flex: 1; max-width: 350px; }
-
-    #tasks-output { flex: 1; max-width: 400px; text-align: left; }
 
     #tasks-output ul { list-style-type: none; padding: 0;}
 
     #tasks-output li { margin-bottom: 15px; background: rgba(255,255,255,0.15); padding: 12px; 
       border-radius: 8px;box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+    #app-container { display: flex; justify-content: space-around; align-items: flex-start; margin-top: 30px; }
 
+    #tasks-output { flex: 1; max-width: 400px; text-align: left; position: relative; }
+
+    header { position: relative; }
+
+    #logout-btn { position: absolute; top: 20px; left: 20px; }
+
+    #dark-mode-toggle { position: absolute; top: 20px; right: 20px; }
+
+    #search-bar { display: flex; justify-content: center; margin-top: 20px; margin-bottom: 10px; }
+
+    #searchInput { width: 60%; padding: 10px; border-radius: 8px; border: none; outline: none; font-size: 16px; }
+
+    .highlight { border: 2px solid yellow; background-color: rgba(255,255,0,0.2); }
   </style>
 </head>
 <body>
   <header>
-    <button id="logout-btn" data-key="logoutBtn">🚪 Wyloguj się</button>
+    <button id="logout-btn" data-key="logoutBtn" style="display:none;">🚪 Wyloguj</button>
+    <div id="language-container">
+      <button id="language-btn">🌐 Language</button>
+      <div id="language-menu" style="display:none;">
+        <button data-lang="pl">🇵🇱 Polski</button>
+        <button data-lang="en">🇬🇧 English</button>
+        <button data-lang="es">🇪🇸 Español</button>
+      </div>
+    </div>
     <button id="dark-mode-toggle" data-key="darkModeBtn">🌙 Tryb ciemny</button>
   </header>
   <main>
@@ -86,29 +103,22 @@
   </form>
 
   <div id="app" style="display:none;">
-    <div id="app-container">
-      <div id="form-section">
-        <h3 data-key="addTaskTitle">📋 Dodaj zadanie</h3>
-        <input id="task" placeholder="Task" data-key="taskPlaceholder">
-        <input id="status" placeholder="Status" data-key="statusPlaceholder">
-        <input id="deadline" placeholder="Deadline" data-key="deadlinePlaceholder">
-        <button onclick="saveTask()" data-key="addTaskBtn">Dodaj</button>
-        <div id="result"></div>
-      </div>
-      <div id="tasks-output"></div>
-    </div>
-  </div>
-
-  <div class="controls">
-  <button id="language-btn">🌐 Language</button>
-  <div id="language-menu" style="display:none;">
-    <button data-lang="pl">🇵🇱 Polski</button>
-    <button data-lang="en">🇬🇧 English</button>
-    <button data-lang="es">🇪🇸 Español</button>
-  </div>
+<div id="search-bar">
+  <input id="searchInput" type="text" placeholder="🔍 Szukaj zadań..." />
+  <button id="searchBtn">Szukaj</button>
 </div>
-</main>
-        <!-- Prawa kolumna: lista tasków -->
+<div id="search-results"></div>
+
+  <div id="app-container">
+    <div id="form-section">
+      <h3 data-key="addTaskTitle">📋 Dodaj zadanie</h3>
+      <input id="task" placeholder="Task" data-key="taskPlaceholder">
+      <input id="status" placeholder="Status" data-key="statusPlaceholder">
+      <input id="deadline" placeholder="Deadline" data-key="deadlinePlaceholder">
+      <button onclick="saveTask()" data-key="addTaskBtn">Dodaj</button>
+      <div id="result"></div>
+  </div>        
+  <!-- Prawa kolumna: lista tasków -->
         <div id="tasks-output"></div>
       </div>
     </div>
@@ -243,8 +253,8 @@ async function saveTask() {
     list.appendChild(li);
   });
   output.appendChild(list);
-
 }
+
 // --- Dodawanie zadania
 async function saveTask() {
   const task = document.getElementById("task").value;
@@ -548,12 +558,102 @@ function translatePage(lang) {
       });
     });
   }
+  if (data.token) {
+    token = data.token;
+    document.getElementById("app").style.display = "block";
+    document.getElementById("logout-btn").style.display = "inline-block"; // pokaż tylko w app
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("registerForm").style.display = "none";
+    document.getElementById("forgotForm").style.display = "none";
+    refreshTasks();
+  }
+  logoutBtn.style.display = "none";
+  document.getElementById("app").style.display = "none";
+  document.getElementById("loginForm").style.display = "block";
+  document.getElementById("registerForm").style.display = "block";
+  document.getElementById("forgotForm").style.display = "block";
 
   // --- INIT: zastosuj zapisane ustawienia przy starcie
   translatePage(savedLang);
-  translatePage("pl");
-  applyDarkModeState(savedDark);
+  applyDarkModeState(localStorage.getItem("darkMode") || "light");
 });
+// --- Wyszukiwanie 
+document.getElementById("searchBtn").addEventListener("click", async () => {
+  const query = document.getElementById("searchInput").value.trim();
+  const resultsDiv = document.getElementById("search-results");
+  const authToken = token || localStorage.getItem("token"); // fallback if token is stored
+
+  if (!query) {
+    resultsDiv.innerHTML = "<p>Wpisz coś do wyszukania.</p>";
+    return;
+  }
+
+  // clear previous highlights
+  document.querySelectorAll("#tasks-output li").forEach(li => li.classList.remove("highlight"));
+
+  try {
+    const res = await fetch(`/api/tasks/search?q=${encodeURIComponent(query)}`, {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
+    });
+
+    // if non-2xx, show server message
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Search error:", res.status, text);
+      resultsDiv.innerHTML = `<p>Błąd wyszukiwania (${res.status}): ${text}</p>`;
+      return;
+    }
+
+    const tasks = await res.json();
+
+    // Validate response shape
+    if (!Array.isArray(tasks)) {
+      console.error("Unexpected search response:", tasks);
+      resultsDiv.innerHTML = "<p>Błąd: odpowiedź nie jest listą zadań.</p>";
+      return;
+    }
+
+    if (tasks.length === 0) {
+      resultsDiv.innerHTML = "<p>Brak wyników.</p>";
+      return;
+    }
+
+    const list = document.createElement("ul");
+    tasks.forEach(t => {
+      const li = document.createElement("li");
+      li.innerHTML = `<strong>📝 ${t.task}</strong><br>📌 ${t.status}<br>⏰ ${t.deadline}`;
+      list.appendChild(li);
+
+      // highlight in main list
+      const mainItem = Array.from(document.querySelectorAll("#tasks-output li"))
+        .find(el => el.textContent.includes(t.task));
+      if (mainItem) mainItem.classList.add("highlight");
+    });
+    resultsDiv.innerHTML = "";
+    resultsDiv.appendChild(list);
+  } catch (err) {
+    console.error("Search fetch failed:", err);
+    resultsDiv.innerHTML = `<p>Błąd wyszukiwania: ${String(err)}</p>`;
+  }
+});
+
+app.get("/api/tasks/search", authMiddleware, async (req, res) => {
+  const q = (req.query.q || "").trim().toLowerCase();
+
+  if (!q || !req.user?.id) return res.json([]);
+
+  try {
+    const [rows] = await db.execute(
+      "SELECT id, task, status, deadline FROM tasks WHERE user_id = ? AND (task LIKE ? OR status LIKE ?)",
+      [req.user.id, `%${q}%`, `%${q}%`]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Błąd wyszukiwania:", err);
+    res.status(500).send("Błąd serwera");
+  }
+});
+
 </script>
 </body>
 </html>
