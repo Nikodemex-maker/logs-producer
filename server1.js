@@ -259,6 +259,21 @@ app.get('/reset-password', (req, res) => {
   res.sendFile(path.join(__dirname, 'reset.html'));
 });
 
+// --- Wyszukiwanie
+app.get('/api/tasks/search', authenticateToken, (req, res) => {
+  const { q } = req.query;
+  if (!q) return res.status(400).json({ message: 'Missing search query' });
+
+  connection.query(
+    'SELECT * FROM tasks WHERE user_id=? AND task LIKE ?',
+    [req.user.id, `%${q}%`],
+    (err, results) => {
+      if (err) return res.status(500).json({ message: 'Database error' });
+      res.json(results);
+    }
+  );
+});
+
 // --- Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
